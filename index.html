@@ -4002,7 +4002,10 @@ mpHighlight(0);
   // El servidor debe estar corriendo en localhost:3001
   // ═══════════════════════════════════════════════════════════════════
 
-  const API_URL = 'http://localhost:3001/api';
+  // En Railway usa la misma URL de la web, en local usa localhost:3001
+  const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:3001/api'
+    : window.location.origin + '/api';
   let _apiOnline = null; // null=no comprobado, true=online, false=offline
 
   async function apiCheck() {
