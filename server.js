@@ -20,6 +20,9 @@ app.get('/', (req, res) => {
 
 // ── Config (lee .env si existe, si no usa valores por defecto) ─
 function getEnv(key, fallback) {
+  // Railway/production: usar variables de entorno del sistema primero
+  if (process.env[key]) return process.env[key];
+  // Local: leer del archivo .env
   try {
     const env = fs.readFileSync(path.join(__dirname, '.env'), 'utf8');
     const match = env.match(new RegExp(`^${key}=(.+)$`, 'm'));
