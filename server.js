@@ -15,7 +15,7 @@ app.use(express.json({ limit: '10mb' }));
 
 // Servir el Index.html en la raíz
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'Index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // ── Config (lee .env si existe, si no usa valores por defecto) ─
