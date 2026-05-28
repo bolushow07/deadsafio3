@@ -35,7 +35,7 @@ const DB_CONFIG = {
   database: getEnv('DB_NAME',     'deadsafio3'),
   charset:  'utf8mb4',
 };
-const PORT = parseInt(getEnv('API_PORT', '3001'));
+const PORT = parseInt(process.env.PORT || getEnv('API_PORT', '3001'));
 
 // ── Pool de conexiones ─────────────────────────────────────
 let pool;
