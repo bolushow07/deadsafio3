@@ -1275,6 +1275,35 @@
   }
   .auth-input::placeholder { color: rgba(232,232,255,0.2); }
 
+  .auth-pass-wrap {
+    position: relative;
+    display: flex;
+  }
+  .auth-pass-wrap .auth-input {
+    padding-right: 2.6rem;
+  }
+  .auth-pass-toggle {
+    position: absolute;
+    top: 50%;
+    right: 0.5rem;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: rgba(232,232,255,0.55);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s, transform 0.15s;
+  }
+  .auth-pass-toggle:hover {
+    color: var(--cream);
+    transform: translateY(-50%) scale(1.1);
+  }
+
   .auth-submit {
     margin-top: 0.3rem;
     padding: 0.75rem;
@@ -1606,6 +1635,32 @@
     transition: color 0.15s;
   }
   .admin-part-del:hover { color: var(--blood-bright); }
+  .admin-insert-save-btn {
+    flex-shrink: 0;
+    border: 1px solid rgba(212,175,55,0.35);
+    border-radius: 5px;
+    background: rgba(212,175,55,0.08);
+    color: #d4af37;
+    padding: 0.25rem 0.4rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .admin-insert-save-btn:hover { background: rgba(212,175,55,0.25); transform: scale(1.08); }
+  .admin-reset-data-btn {
+    flex-shrink: 0;
+    border: 1px solid rgba(90,180,255,0.35);
+    border-radius: 5px;
+    background: rgba(90,180,255,0.08);
+    color: #5ab4ff;
+    padding: 0.25rem 0.4rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .admin-reset-data-btn:hover { background: rgba(90,180,255,0.25); transform: scale(1.08); }
 
   /* Añadir participante */
   .admin-add-row {
@@ -1671,6 +1726,33 @@
     align-self: flex-end;
   }
   .admin-save-btn:hover { background: rgba(212,175,55,0.28); box-shadow: 0 0 12px rgba(212,175,55,0.25); }
+  .admin-save-target-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin: 0.5rem 0;
+  }
+  .admin-save-target-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(232,232,255,0.5);
+  }
+  .admin-save-target-select {
+    background: rgba(10,10,30,0.8);
+    border: 1px solid rgba(90,90,220,0.3);
+    border-radius: 4px;
+    padding: 0.5rem 0.6rem;
+    color: var(--cream);
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.82rem;
+    outline: none;
+    width: 100%;
+  }
+  .admin-save-target-select:focus {
+    border-color: var(--indigo-bright);
+    box-shadow: 0 0 0 2px rgba(90,90,220,0.15);
+  }
 
   /* Anuncios */
   .admin-notif-emoji-row {
@@ -1720,6 +1802,275 @@
   .admin-msg.ok  { color: #4ade80; background: rgba(74,222,128,0.08); display: block; }
   .admin-msg.err { color: var(--blood-glow); background: rgba(231,76,60,0.08); display: block; }
 
+
+
+  /* Botones visibles de muerte/robo/blindaje dentro del perfil (solo admin) */
+  .poke-slot, .box-slot { position: relative; }
+  .poke-admin-actions {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 8;
+  }
+  .pokemon-life-toggle,
+  .pokemon-stolen-toggle,
+  .pokemon-shield-toggle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid rgba(231,76,60,.75);
+    background: rgba(6,6,15,.92);
+    color: #fff;
+    font-size: 1rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 0 12px rgba(231,76,60,.45);
+    transition: transform .15s, background .15s, box-shadow .15s;
+  }
+  .pokemon-life-toggle:hover {
+    transform: scale(1.12);
+    background: rgba(139,0,0,.95);
+    box-shadow: 0 0 18px rgba(231,76,60,.75);
+  }
+  .pokemon-life-toggle.revive {
+    border-color: rgba(240,208,96,.85);
+    background: rgba(55,42,0,.95);
+    box-shadow: 0 0 12px rgba(240,208,96,.5);
+  }
+  .pokemon-life-toggle.revive:hover {
+    background: rgba(90,68,0,.98);
+    box-shadow: 0 0 18px rgba(240,208,96,.8);
+  }
+  .pokemon-stolen-toggle {
+    border-color: rgba(240,208,96,.75);
+    box-shadow: 0 0 12px rgba(240,208,96,.4);
+  }
+  .pokemon-stolen-toggle:hover {
+    transform: scale(1.12);
+    background: rgba(90,68,0,.9);
+    box-shadow: 0 0 18px rgba(240,208,96,.7);
+  }
+  .pokemon-stolen-toggle.unsteal {
+    border-color: rgba(74,222,128,.85);
+    box-shadow: 0 0 12px rgba(74,222,128,.5);
+  }
+  .pokemon-stolen-toggle.unsteal:hover {
+    background: rgba(10,60,25,.9);
+    box-shadow: 0 0 18px rgba(74,222,128,.8);
+  }
+  .pokemon-shield-toggle {
+    border-color: rgba(90,180,255,.8);
+    box-shadow: 0 0 12px rgba(90,180,255,.45);
+  }
+  .pokemon-shield-toggle:hover {
+    transform: scale(1.12);
+    background: rgba(10,40,70,.95);
+    box-shadow: 0 0 18px rgba(90,180,255,.75);
+  }
+  .pokemon-shield-toggle.unshield {
+    border-color: rgba(148,163,184,.8);
+    box-shadow: 0 0 12px rgba(148,163,184,.4);
+  }
+  .pokemon-shield-toggle.unshield:hover {
+    background: rgba(40,45,55,.9);
+    box-shadow: 0 0 18px rgba(148,163,184,.7);
+  }
+  .box-slot .poke-admin-actions {
+    top: 2px;
+    right: 2px;
+    gap: 2px;
+  }
+  .box-slot .poke-admin-actions button {
+    width: 24px;
+    height: 24px;
+    font-size: .78rem;
+  }
+
+  /* ── Pokémon muertos / gestión admin ─────────────────────────────────────── */
+  .poke-slot.dead-pokemon,
+  .box-slot.dead-pokemon,
+  .poke-detail-card.dead-pokemon {
+    position: relative;
+    filter: grayscale(1) brightness(0.48);
+    border-color: rgba(231,76,60,0.7) !important;
+    background: rgba(70,0,0,0.28) !important;
+  }
+  .poke-slot.dead-pokemon::after,
+  .box-slot.dead-pokemon::after {
+    content: '💀';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.55rem;
+    color: #ff5a4d;
+    background: rgba(20,0,0,0.38);
+    text-shadow: 0 0 8px #000, 0 0 10px rgba(231,76,60,0.9);
+    pointer-events: none;
+  }
+  .poke-slot.dead-pokemon .poke-name,
+  .poke-slot.dead-pokemon .poke-level { text-decoration: line-through; }
+  .dead-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 2px 7px;
+    border: 1px solid rgba(231,76,60,0.55);
+    border-radius: 20px;
+    color: #ff6b60;
+    background: rgba(139,0,0,0.16);
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .admin-pokemon-manager {
+    display: none;
+    margin: 0.35rem 0 0.65rem;
+    padding: 0.7rem;
+    border: 1px solid rgba(212,175,55,0.2);
+    border-radius: 8px;
+    background: rgba(10,10,28,0.72);
+  }
+  .admin-pokemon-manager.open { display: block; }
+  .admin-pokemon-manager-title {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 0.65rem;
+    color: #d4af37;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 0.4rem 0 0.45rem;
+  }
+  .admin-pokemon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    gap: 0.45rem;
+  }
+  .admin-pokemon-card {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+    padding: 0.45rem;
+    border: 1px solid rgba(90,90,220,0.22);
+    border-radius: 7px;
+    background: rgba(26,26,62,0.5);
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .admin-pokemon-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(212,175,55,0.55);
+    background: rgba(43,43,107,0.55);
+  }
+  .admin-pokemon-card:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+  .admin-pokemon-card.dead {
+    border-color: rgba(231,76,60,0.55);
+    background: rgba(90,0,0,0.18);
+  }
+  .admin-pokemon-card.stolen {
+    border-color: rgba(240,208,96,0.55);
+    background: rgba(60,42,4,0.22);
+  }
+  .admin-pokemon-card.blindado {
+    border-color: rgba(90,180,255,0.6);
+    background: rgba(10,40,70,0.22);
+  }
+  .admin-pokemon-card img {
+    width: 34px;
+    height: 34px;
+    image-rendering: pixelated;
+    flex-shrink: 0;
+  }
+  .admin-pokemon-card.dead img { filter: grayscale(1) brightness(0.5); }
+  .admin-pokemon-info { flex: 1; min-width: 0; }
+  .admin-pokemon-name {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--cream);
+    font-size: 0.68rem;
+  }
+  .admin-pokemon-state { font-size: 0.55rem; color: rgba(232,232,255,0.4); }
+  .admin-death-btn {
+    flex-shrink: 0;
+    border: 1px solid rgba(231,76,60,0.45);
+    border-radius: 5px;
+    background: rgba(139,0,0,0.12);
+    color: #ff6b60;
+    padding: 0.25rem 0.35rem;
+    cursor: pointer;
+    font-size: 0.72rem;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .admin-death-btn:hover { background: rgba(139,0,0,0.3); transform: scale(1.06); }
+  .admin-death-btn.revive {
+    border-color: rgba(74,222,128,0.45);
+    background: rgba(74,222,128,0.08);
+    color: #4ade80;
+  }
+  .admin-pokemon-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex-shrink: 0;
+  }
+  .admin-stolen-btn {
+    flex-shrink: 0;
+    border: 1px solid rgba(240,208,96,0.45);
+    border-radius: 5px;
+    background: rgba(240,208,96,0.1);
+    color: #f0d060;
+    padding: 0.25rem 0.35rem;
+    cursor: pointer;
+    font-size: 0.72rem;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .admin-stolen-btn:hover { background: rgba(240,208,96,0.28); transform: scale(1.06); }
+  .admin-stolen-btn.unsteal {
+    border-color: rgba(74,222,128,0.45);
+    background: rgba(74,222,128,0.08);
+    color: #4ade80;
+  }
+  .admin-shield-btn {
+    flex-shrink: 0;
+    border: 1px solid rgba(90,180,255,0.45);
+    border-radius: 5px;
+    background: rgba(90,180,255,0.1);
+    color: #5ab4ff;
+    padding: 0.25rem 0.35rem;
+    cursor: pointer;
+    font-size: 0.72rem;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .admin-shield-btn:hover { background: rgba(90,180,255,0.28); transform: scale(1.06); }
+  .admin-shield-btn.unshield {
+    border-color: rgba(148,163,184,0.45);
+    background: rgba(148,163,184,0.08);
+    color: #94a3b8;
+  }
+  .admin-manage-pokemon-btn {
+    border: 1px solid rgba(212,175,55,0.35);
+    border-radius: 5px;
+    background: rgba(212,175,55,0.08);
+    color: #d4af37;
+    padding: 0.25rem 0.45rem;
+    cursor: pointer;
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
 
   /* ── Perfil Pokémon detallado ────────────────────────────────────────────── */
   .poke-slot.shiny img  { filter: drop-shadow(0 0 5px gold); }
@@ -1880,6 +2231,222 @@
   .mpd-iv-ev-cell .lbl { font-size: 0.45rem; color: rgba(232,232,255,0.3); }
   .mpd-iv-ev-cell .val { font-size: 0.6rem; color: var(--cream); }
 
+
+  /* ── USO DE CARTA: ROBAR POKÉMON ───────────────────────────────────────── */
+  .collection-card.usable-card {
+    cursor: pointer;
+    box-shadow: 0 0 22px rgba(240,208,96,0.45);
+  }
+  .collection-card.usable-card::after {
+    content: 'USAR';
+    position: absolute;
+    bottom: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gold);
+    color: #171000;
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.52rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+  .steal-help {
+    color: rgba(232,232,255,0.58);
+    font-size: 0.8rem;
+    line-height: 1.45;
+    margin-bottom: 0.9rem;
+  }
+
+  /* ── Ranking de muertes ──────────────────────────────────────────────────── */
+  .ranking-filters {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .ranking-filter-btn {
+    flex: 1;
+    min-width: 90px;
+    border: 1px solid rgba(90,90,220,0.3);
+    border-radius: 6px;
+    background: rgba(26,26,62,0.6);
+    color: rgba(232,232,255,0.65);
+    padding: 0.5rem 0.6rem;
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
+  }
+  .ranking-filter-btn:hover {
+    transform: translateY(-2px);
+    border-color: rgba(212,175,55,0.5);
+  }
+  .ranking-filter-btn.active {
+    background: rgba(212,175,55,0.15);
+    border-color: var(--gold);
+    color: var(--gold-light);
+  }
+  .ranking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 58vh;
+    overflow-y: auto;
+    padding: 0.15rem;
+  }
+  .ranking-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    border: 1px solid rgba(90,90,220,0.25);
+    border-radius: 8px;
+    background: rgba(26,26,62,0.55);
+    padding: 0.55rem 0.75rem;
+  }
+  .ranking-row.top1 { border-color: var(--gold); box-shadow: 0 0 14px rgba(212,175,55,0.25); }
+  .ranking-row.top2 { border-color: rgba(200,200,220,0.6); }
+  .ranking-row.top3 { border-color: rgba(205,127,50,0.6); }
+  .ranking-rank {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    width: 1.8rem;
+    text-align: center;
+    color: rgba(232,232,255,0.5);
+    flex-shrink: 0;
+  }
+  .ranking-row.top1 .ranking-rank { color: var(--gold-light); }
+  .ranking-row.top2 .ranking-rank { color: #d8d8ea; }
+  .ranking-row.top3 .ranking-rank { color: #cd7f32; }
+  .ranking-emoji {
+    font-size: 1.35rem;
+    width: 2rem;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .ranking-info { flex: 1; min-width: 0; }
+  .ranking-name {
+    display: block;
+    color: var(--cream);
+    font-size: 0.88rem;
+    letter-spacing: 0.02em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ranking-mode-badge {
+    display: inline-block;
+    margin-top: 2px;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 1px 6px;
+    border-radius: 10px;
+    border: 1px solid rgba(231,76,60,0.4);
+    color: rgba(232,232,255,0.5);
+  }
+  .ranking-mode-badge.radical {
+    border-color: rgba(231,76,60,0.55);
+    color: #ff8a80;
+    background: rgba(139,0,0,0.15);
+  }
+  .ranking-mode-badge.normal {
+    border-color: rgba(90,180,255,0.5);
+    color: #8ecaff;
+    background: rgba(10,40,70,0.15);
+  }
+  .ranking-deaths {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #ff6b60;
+    flex-shrink: 0;
+  }
+  .ranking-empty {
+    text-align: center;
+    color: rgba(232,232,255,0.35);
+    padding: 1.5rem 0;
+    font-size: 0.85rem;
+  }
+  .steal-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
+    gap: 0.65rem;
+    max-height: 52vh;
+    overflow-y: auto;
+    padding: 0.2rem;
+  }
+  .steal-choice {
+    border: 1px solid rgba(90,90,220,0.28);
+    border-radius: 7px;
+    background: rgba(26,26,62,0.65);
+    color: var(--cream);
+    padding: 0.7rem 0.55rem;
+    cursor: pointer;
+    font-family: 'Oswald', sans-serif;
+    transition: transform 0.15s, border-color 0.15s, background 0.15s;
+    text-align: center;
+  }
+  .steal-choice:hover {
+    transform: translateY(-3px);
+    border-color: var(--gold);
+    background: rgba(55,45,12,0.65);
+  }
+  .steal-choice img {
+    width: 62px;
+    height: 62px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    display: block;
+    margin: 0 auto 0.3rem;
+  }
+  .steal-choice-name {
+    display: block;
+    font-weight: 600;
+    font-size: 0.78rem;
+  }
+  .steal-choice-sub {
+    display: block;
+    margin-top: 2px;
+    color: rgba(232,232,255,0.42);
+    font-size: 0.62rem;
+  }
+  .stolen-pokemon {
+    position: relative;
+    border-color: rgba(240,208,96,0.75) !important;
+    background: rgba(60,42,4,0.38) !important;
+  }
+  .stolen-pokemon::after {
+    content: '💰';
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    z-index: 5;
+    font-size: 0.9rem;
+    filter: drop-shadow(0 0 5px rgba(240,208,96,0.8));
+  }
+  .blindado-pokemon {
+    position: relative;
+    outline: 2px solid rgba(90,180,255,0.85);
+    outline-offset: -2px;
+    box-shadow: 0 0 12px rgba(90,180,255,0.55), inset 0 0 14px rgba(90,180,255,0.18);
+  }
+  .blindado-pokemon::before {
+    content: '🔒';
+    position: absolute;
+    right: 3px;
+    top: 3px;
+    z-index: 6;
+    font-size: 0.9rem;
+    filter: drop-shadow(0 0 5px rgba(90,180,255,0.9));
+  }
+
 </style>
 <body>
 
@@ -1903,10 +2470,6 @@
     <!-- Vista no autenticado -->
     <div id="auth-guest-view">
       <div class="modal-title">👤 Cuenta</div>
-      <div class="auth-tabs">
-        <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Iniciar sesión</button>
-        <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Registrarse</button>
-      </div>
 
       <!-- Formulario Login -->
       <div class="auth-form" id="form-login">
@@ -1916,28 +2479,13 @@
         </div>
         <div class="auth-field">
           <label class="auth-label">Contraseña</label>
-          <input class="auth-input" type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+          <div class="auth-pass-wrap">
+            <input class="auth-input" type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+            <button type="button" class="auth-pass-toggle" id="login-pass-toggle" onclick="toggleLoginPassVisibility()" title="Mostrar contraseña" aria-label="Mostrar contraseña">👁️</button>
+          </div>
         </div>
         <div class="auth-msg" id="login-msg"></div>
         <button class="auth-submit" onclick="handleLogin()">Entrar</button>
-      </div>
-
-      <!-- Formulario Registro -->
-      <div class="auth-form hidden" id="form-register">
-        <div class="auth-field">
-          <label class="auth-label">Nombre de usuario</label>
-          <input class="auth-input" type="text" id="reg-user" placeholder="Elige un nombre…" autocomplete="username">
-        </div>
-        <div class="auth-field">
-          <label class="auth-label">Contraseña</label>
-          <input class="auth-input" type="password" id="reg-pass" placeholder="••••••••" autocomplete="new-password">
-        </div>
-        <div class="auth-field">
-          <label class="auth-label">Repetir contraseña</label>
-          <input class="auth-input" type="password" id="reg-pass2" placeholder="••••••••" autocomplete="new-password">
-        </div>
-        <div class="auth-msg" id="reg-msg"></div>
-        <button class="auth-submit" onclick="handleRegister()">Crear cuenta</button>
       </div>
     </div>
 
@@ -1968,10 +2516,27 @@
   <button class="topbar-btn" onclick="openModal('modal-settings')" title="Ajustes">
     ⚙️
   </button>
+  <button class="topbar-btn" onclick="openModal('modal-ranking')" title="Ranking de muertes">
+    🏆
+  </button>
   <button class="topbar-btn" id="admin-topbar-btn" onclick="openModal('modal-admin')" title="Panel Admin" style="display:none;">
     <span class="admin-crown">👑</span>
     🛡️
   </button>
+</div>
+
+<!-- Modal Ranking -->
+<div class="modal-overlay" id="modal-ranking" onclick="closeOnOverlay(event,'modal-ranking')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-ranking')">✕</button>
+    <div class="modal-title">🏆 Ranking de Muertes</div>
+    <div class="ranking-filters">
+      <button class="ranking-filter-btn active" id="ranking-filter-all" onclick="setRankingFilter('all')">Todos</button>
+      <button class="ranking-filter-btn" id="ranking-filter-radical" onclick="setRankingFilter('radical')">☠️ Radical</button>
+      <button class="ranking-filter-btn" id="ranking-filter-normal" onclick="setRankingFilter('normal')">🎮 Normal</button>
+    </div>
+    <div id="ranking-list" class="ranking-list"></div>
+  </div>
 </div>
 
 <!-- Modal Ajustes -->
@@ -2026,6 +2591,7 @@
     <!-- Panel participantes -->
     <div class="admin-panel active" id="apanel-participants">
       <div class="admin-participant-list" id="admin-part-list"></div>
+      <input type="file" id="admin-insert-save-file" accept=".rxdata,.dat,.bin" style="display:none;" onchange="adminHandleInsertSaveFile(this.files[0])">
 
       <!-- Upload de save .rxdata -->
       <div class="admin-save-upload-area" id="admin-save-drop" onclick="document.getElementById('admin-save-file').click()">
@@ -2038,7 +2604,11 @@
           <span class="admin-save-player-name" id="admin-save-player-name">—</span>
           <span class="admin-save-badges" id="admin-save-badges"></span>
         </div>
-        <button class="admin-add-btn" style="font-size:0.7rem;padding:0.35rem 0.8rem;align-self:flex-start;" onclick="adminConfirmSaveParticipant()">✅ Añadir participante</button>
+        <div class="admin-save-target-row">
+          <label class="admin-save-target-label" for="admin-save-target-participant">Insertar en el participante:</label>
+          <select class="admin-save-target-select" id="admin-save-target-participant"></select>
+        </div>
+        <button class="admin-add-btn" style="font-size:0.7rem;padding:0.35rem 0.8rem;align-self:flex-start;" onclick="adminConfirmSaveParticipant()">✅ Insertar partida</button>
         <div class="admin-save-section-label">⚔️ Equipo</div>
         <div class="admin-save-team" id="admin-save-team"></div>
       </div>
@@ -2109,7 +2679,7 @@
   <div class="skull-icon">💀</div>
 
   <div class="title-block">
-    <p class="title-eyebrow">Temporada 3 · El Reto Final</p>
+    <p class="title-eyebrow">El Deadsafio más grande</p>
     <h1>Dead<span style="-webkit-text-fill-color:var(--blood-bright); color:var(--blood-bright);">safio</span> <span class="num">3</span></h1>
     <div class="title-bar"></div>
     <p class="tagline">¿Tienes lo que hay que tener?</p>
@@ -2191,9 +2761,20 @@
     <div class="modal-title">🃏 Mis Cartas</div>
     <div class="collection-header">
       <span class="collection-count" id="collection-count">0 cartas obtenidas</span>
-      <button class="collection-clear-btn" onclick="clearCollection()">🗑 Borrar todo</button>
+      <button class="collection-clear-btn" id="collection-clear-btn" onclick="clearCollection()">🗑 Borrar todo</button>
     </div>
     <div class="collection-scroll" id="collection-scroll"></div>
+  </div>
+</div>
+
+
+<!-- Modal para usar la carta Robas un Pokémon -->
+<div class="modal-overlay" id="modal-steal-pokemon" onclick="closeOnOverlay(event,'modal-steal-pokemon')">
+  <div class="modal" style="max-width:720px;">
+    <button class="modal-close" onclick="closeModal('modal-steal-pokemon')">✕</button>
+    <div class="modal-title" id="steal-modal-title">💰 Robar un Pokémon</div>
+    <div class="steal-help" id="steal-help">Elige la partida a la que quieres robarle un Pokémon.</div>
+    <div id="steal-content"></div>
   </div>
 </div>
 
@@ -2204,37 +2785,90 @@
     ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${id}.png`
     : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
 
+  // Formas regionales estándar de Pokémon Essentials v21.1.
+  // En el save la especie permanece igual (p. ej. VULPIX) y @form indica la variante.
+  const REGIONAL_FORMS = {
+    RATTATA:{1:['Alola','rattata-alola']}, RATICATE:{1:['Alola','raticate-alola']},
+    RAICHU:{1:['Alola','raichu-alola']}, SANDSHREW:{1:['Alola','sandshrew-alola']},
+    SANDSLASH:{1:['Alola','sandslash-alola']}, VULPIX:{1:['Alola','vulpix-alola']},
+    NINETALES:{1:['Alola','ninetales-alola']}, DIGLETT:{1:['Alola','diglett-alola']},
+    DUGTRIO:{1:['Alola','dugtrio-alola']}, MEOWTH:{1:['Alola','meowth-alola'],2:['Galar','meowth-galar']},
+    PERSIAN:{1:['Alola','persian-alola']}, GEODUDE:{1:['Alola','geodude-alola']},
+    GRAVELER:{1:['Alola','graveler-alola']}, GOLEM:{1:['Alola','golem-alola']},
+    GRIMER:{1:['Alola','grimer-alola']}, MUK:{1:['Alola','muk-alola']},
+    EXEGGUTOR:{1:['Alola','exeggutor-alola']}, MAROWAK:{1:['Alola','marowak-alola']},
+
+    PONYTA:{1:['Galar','ponyta-galar']}, RAPIDASH:{1:['Galar','rapidash-galar']},
+    SLOWPOKE:{1:['Galar','slowpoke-galar']}, SLOWBRO:{1:['Galar','slowbro-galar']},
+    FARFETCHD:{1:['Galar','farfetchd-galar']}, WEEZING:{1:['Galar','weezing-galar']},
+    MRMIME:{1:['Galar','mrmime-galar']}, ARTICUNO:{1:['Galar','articuno-galar']},
+    ZAPDOS:{1:['Galar','zapdos-galar']}, MOLTRES:{1:['Galar','moltres-galar']},
+    SLOWKING:{1:['Galar','slowking-galar']}, CORSOLA:{1:['Galar','corsola-galar']},
+    ZIGZAGOON:{1:['Galar','zigzagoon-galar']}, LINOONE:{1:['Galar','linoone-galar']},
+    DARUMAKA:{1:['Galar','darumaka-galar']}, DARMANITAN:{1:['Galar','darmanitan-galar']},
+    YAMASK:{1:['Galar','yamask-galar']}, STUNFISK:{1:['Galar','stunfisk-galar']},
+
+    WOOPER:{1:['Paldea','wooper-paldea']},
+    TAUROS:{1:['Paldea (Combate)','tauros-paldea-combat'],2:['Paldea (Ardiente)','tauros-paldea-blaze'],3:['Paldea (Acuática)','tauros-paldea-aqua']}
+  };
+
+  function regionalFormInfo(species, form) {
+    const key = String(species || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const n = Number(form || 0);
+    const data = REGIONAL_FORMS[key]?.[n];
+    return data ? { region:data[0], slug:data[1] } : null;
+  }
+
+  function pokemonDisplaySpecies(pk) {
+    const base = (typeof POKEMON_NAMES !== 'undefined' && POKEMON_NAMES[pk.species]) ||
+      String(pk.species || pk.name || '???').toLowerCase().replace(/(^|_)([a-z])/g, (_,a,b)=>(a?' ':'')+b.toUpperCase());
+    const regional = regionalFormInfo(pk.species, pk.form);
+    return regional ? `${base} de ${regional.region}` : base;
+  }
+
+  function pokemonSprite(pk, shiny=false) {
+    const regional = regionalFormInfo(pk.species, pk.form);
+    if (regional) {
+      const folder = shiny ? 'gen5-shiny' : 'gen5';
+      return `https://play.pokemonshowdown.com/sprites/${folder}/${regional.slug}.png`;
+    }
+    const id = pk.id || speciesNameToId(pk.species || '') || 0;
+    return pokeApi(id, shiny);
+  }
+
   // Participantes — se cargarán desde la base de datos
   const participants = [];
 
   // ── Recompensas del sobre ───────────────────────────────────────────────────
   const recompensas = [
-    { emoji: '🫳',  label: 'Legendaria', value: 'Robas un Pokémon',              rarity: 'legendary' },
-    { emoji: '🎣',  label: 'Rara',       value: 'Captura extra',                 rarity: 'rare'      },
+    { emoji: '💰',  label: 'Legendaria', value: 'Robas un Pokémon',              rarity: 'legendary' },
+    { emoji: '🎣',  label: 'Épica',       value: 'Captura extra',                 rarity: 'epic'      },
     { emoji: '🃏',  label: 'Legendaria', value: '+2 cartas',                     rarity: 'legendary' },
     { emoji: '🔀',  label: 'Épica',      value: 'Intercambio forzado',           rarity: 'epic'      },
     { emoji: '😶',  label: 'Común',      value: 'Nada',                          rarity: 'common'    },
     { emoji: '⚔️',  label: 'Legendaria', value: 'Combate Pokémon',               rarity: 'legendary' },
     { emoji: '✨',  label: 'Rara',       value: 'Intercambio prodigioso',        rarity: 'rare'      },
-    { emoji: '🍄',  label: 'Común',      value: 'Mini seta',                     rarity: 'common'    },
     { emoji: '💞',  label: 'Común',      value: 'Escama Corazón',                rarity: 'common'    },
     { emoji: '⭐',  label: 'Épica',      value: 'Shiny forzado',                 rarity: 'epic'      },
-    { emoji: '💀',  label: 'Épica',      value: 'Te matan a un Pokémon',         rarity: 'epic'      },
-    { emoji: '🤏',  label: 'Legendaria', value: 'Te roban una carta',            rarity: 'legendary' },
-    { emoji: '🗑️',  label: 'Épica',      value: 'Te eliminan una carta',         rarity: 'epic'      },
+    { emoji: '😇',  label: 'Legendaria', value: 'Revivir un Pokémon',            rarity: 'legendary' },
     { emoji: '↩️',  label: 'Épica',      value: 'Rollback',                      rarity: 'epic'      },
-    { emoji: '🎲',  label: 'Épica',      value: 'Otra oportunidad',              rarity: 'epic'      },
+    { emoji: '🔒',  label: 'Épica',      value: 'Blindado',                      rarity: 'epic'      },
+    { emoji: '🎗',  label: 'Épica',      value: 'Profanatumbas',                 rarity: 'epic'      },
+    { emoji: '💀',  label: 'Legendaria', value: 'Matas un Pokémon',              rarity: 'legendary' },
+    { emoji: '🔙​',  label: 'Legendaria', value: 'Reviertefectos',              rarity: 'legendary' },
+    { emoji: '👋​', label: 'Rara',       value: 'Skipeo',                      rarity: 'rare'      },
+    { emoji: '🧬​',  label: 'Legendaria', value: 'Equipo espejo',              rarity: 'legendary' },
   ];
 
-  // Pesos por rareza: common 60%, rare 25%, epic 10%, legendary 5%
-  const rarityWeights = { common: 60, rare: 25, epic: 10, legendary: 5 };
+  // Pesos por rareza: common 50%, rare 25%, epic 20%, legendary 5%
+  const rarityWeights = { common: 50, rare: 25, epic: 20, legendary: 5 };
 
   function drawCard() {
     // 1) Sortear rareza según pesos
     const roll = Math.random() * 100;
     let rarity;
-    if (roll < 60)       rarity = 'common';
-    else if (roll < 85)  rarity = 'rare';
+    if (roll < 50)       rarity = 'common';
+    else if (roll < 75)  rarity = 'rare';
     else if (roll < 95)  rarity = 'epic';
     else                 rarity = 'legendary';
 
@@ -2519,6 +3153,10 @@
     saveCollection(col);
   }
   function clearCollection() {
+    if (!isAdmin) {
+      alert('Solo la cuenta de administrador puede borrar cartas.');
+      return;
+    }
     if (!confirm('¿Borrar todas las cartas almacenadas?')) return;
     localStorage.removeItem('ds3-collection');
     updateCardBadge({});
@@ -2589,44 +3227,73 @@
     });
   }
 
-  // Limpiar colección al cargar — el array empieza vacío cada vez
-  localStorage.removeItem('ds3-collection');
-  updateCardBadge({});
+  // Conservar la colección entre recargas y sesiones del navegador.
+  updateCardBadge(loadCollection());
 
   // ── Render participantes ────────────────────────────────────────────────────
   function renderParticipantsList() {
     const list = document.getElementById('participants-list');
     list.innerHTML = '';
+    if (typeof ensureAccountParticipants === 'function') ensureAccountParticipants();
+
     // Combinar participantes del admin (save data) + estáticos
     const adminParts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
-    const allParts   = adminParts.length > 0 ? adminParts : participants;
+    const accounts = (typeof getRankingAccounts === 'function' ? getRankingAccounts() : null) || [];
+
+    let allParts;
+    if (adminParts.length > 0 && accounts.length > 0) {
+      // Orden fijo: primero las 12 cuentas de jugador (admin y Prueba excluidos),
+      // en su orden de creación; luego cualquier participante extra que no
+      // corresponda a ninguna cuenta. Se conserva el índice real dentro de
+      // adminParts para que las acciones de admin (matar/robar/blindar) sigan
+      // apuntando al participante correcto.
+      const usedIdx = new Set();
+      const ordered = [];
+      accounts.forEach(acc => {
+        const idx = adminParts.findIndex(p => p && (p.name || '').trim().toLowerCase() === acc.user.trim().toLowerCase());
+        if (idx !== -1) {
+          ordered.push({ p: adminParts[idx], idx });
+          usedIdx.add(idx);
+        }
+      });
+      adminParts.forEach((p, idx) => {
+        if (!usedIdx.has(idx)) ordered.push({ p, idx });
+      });
+      allParts = ordered;
+    } else {
+      const base = adminParts.length > 0 ? adminParts : participants;
+      allParts = (base || []).map((p, idx) => ({ p, idx }));
+    }
+
     if (allParts.length === 0) {
       list.innerHTML = '<div style="text-align:center;padding:1.5rem;font-size:0.82rem;color:rgba(232,232,255,0.3);">Sin participantes aún</div>';
       return;
     }
-    allParts.forEach((p, i) => {
+    allParts.forEach(({ p, idx }, displayI) => {
       const div = document.createElement('div');
       div.className = 'participant';
       const emoji  = p.emoji  || '💀';
-      const num    = p.num    || (i + 1);
+      const num    = p.num    || (displayI + 1);
       const status = p.status || 'activo';
       const lead   = p.team && p.team[0];
       div.innerHTML = `
         <span class="participant-num">${num}</span>
-        ${lead ? `<img src="${pokeApi(lead.id)}" style="width:28px;height:28px;image-rendering:pixelated;flex-shrink:0;" alt="">` : `<span class="participant-name">${emoji}</span>`}
+        ${lead ? `<img src="${pokemonSprite(lead, lead.shiny)}" style="width:28px;height:28px;image-rendering:pixelated;flex-shrink:0;" alt="">` : `<span class="participant-name">${emoji}</span>`}
         <span class="participant-name">${p.name}</span>
         <span class="participant-tag ${status==='eliminado'?'eliminated':''}">${status==='eliminado'?'Eliminado':'Activo'}</span>
         <span class="participant-arrow">▶</span>
       `;
-      div.addEventListener('click', () => showProfile(i));
+      div.addEventListener('click', () => showProfile(idx));
       list.appendChild(div);
     });
   }
 
   // Cache global de pokémon para evitar JSON.stringify doble en onclick
   let _pkCache = [];
+  let _currentProfileIndex = -1;
 
   function showProfile(index) {
+    _currentProfileIndex = index;
     const adminParts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
     const allParts   = adminParts.length > 0 ? adminParts : participants;
     const p = allParts[index] || participants[index] || adminParts[index];
@@ -2648,10 +3315,7 @@
     // Nombre visible en la tarjeta = mote si existe, si no especie formateada
     function displayName(pk) {
       if (pk.nickname) return pk.nickname;
-      const sp = pk.species || pk.name || '???';
-      // Usar el nombre oficial del juego si está disponible
-      return (typeof POKEMON_NAMES !== 'undefined' && POKEMON_NAMES[sp]) || 
-             (sp.charAt(0).toUpperCase() + sp.slice(1).toLowerCase());
+      return pokemonDisplaySpecies(pk);
     }
 
     // ── Equipo: 6 slots ──────────────────────────────────────────────────────
@@ -2661,20 +3325,21 @@
       const spriteId = pk.id || speciesNameToId(pk.species || '') || 0;
       if (!spriteId) return `<div class="poke-slot empty">–</div>`;
       const cacheIdx = i; // team ocupa índices 0..team.length-1
-      const nickname = pk.nickname
-        ? pk.nickname
-        : (pk.species || pk.name || '???').charAt(0).toUpperCase() + (pk.species || pk.name || '???').slice(1).toLowerCase();
-      const speciesCapped = pk.species
-        ? pk.species.charAt(0).toUpperCase() + pk.species.slice(1).toLowerCase()
-        : '';
+      const speciesCapped = pokemonDisplaySpecies(pk);
+      const nickname = pk.nickname || speciesCapped;
       // Mostrar especie debajo solo si hay mote distinto
       const showSpeciesSub = pk.nickname && speciesCapped && speciesCapped.toLowerCase() !== pk.nickname.toLowerCase();
       return `
-        <div class="poke-slot ${pk.shiny?'shiny':''}" onclick="_showPkByIdx(${cacheIdx})" style="cursor:pointer;">
-          <img class="poke-sprite" src="${pokeApi(spriteId, pk.shiny)}" alt="${nickname}" loading="lazy">
+        <div class="poke-slot ${pk.shiny?'shiny':''} ${pk.dead?'dead-pokemon':''} ${pk.stolen?'stolen-pokemon':''} ${pk.blindado?'blindado-pokemon':''}" onclick="_showPkByIdx(${cacheIdx})" style="cursor:pointer;">
+          ${isAdmin ? `<div class="poke-admin-actions">
+            <button class="pokemon-life-toggle ${pk.dead?'revive':''}" onclick="event.stopPropagation();togglePokemonLifeFromProfile(${index},'team',-1,${i})" title="${pk.dead?'Revivir Pokémon':'Marcar Pokémon como muerto'}" aria-label="${pk.dead?'Revivir Pokémon':'Marcar Pokémon como muerto'}">${pk.dead?'😇':'💀'}</button>
+            <button class="pokemon-stolen-toggle ${pk.stolen?'unsteal':''}" onclick="event.stopPropagation();togglePokemonStolenFromProfile(${index},'team',-1,${i})" title="${pk.stolen?'Desrobar Pokémon':'Marcar Pokémon como robado'}" aria-label="${pk.stolen?'Desrobar Pokémon':'Marcar Pokémon como robado'}">${pk.stolen?'↩️':'💰'}</button>
+            <button class="pokemon-shield-toggle ${pk.blindado?'unshield':''}" onclick="event.stopPropagation();togglePokemonShieldFromProfile(${index},'team',-1,${i})" title="${pk.blindado?'Desblindar Pokémon':'Blindar Pokémon'}" aria-label="${pk.blindado?'Desblindar Pokémon':'Blindar Pokémon'}">${pk.blindado?'🔓':'🔒'}</button>
+          </div>` : ''}
+          <img class="poke-sprite" src="${pokemonSprite(pk, pk.shiny)}" alt="${nickname}" loading="lazy">
           <span class="poke-name">${nickname}</span>
           ${showSpeciesSub ? `<span class="poke-species-sub">${speciesCapped}</span>` : ''}
-          <span class="poke-level">Nv. ${pk.level ?? '?'}</span>
+          <span class="poke-level">${pk.stolen?`💰 ROBADO${pk.stolenBy?' POR '+pk.stolenBy:''} · `:''}${pk.dead?'💀 MUERTO · ':''}Nv. ${pk.level ?? '?'}</span>
         </div>`;
     }).join('');
 
@@ -2682,18 +3347,28 @@
     const pcBoxes = p.pcBoxes || [];
     let cacheOffset = team.length;
     // Una sola caja con todos los pokémon del PC
-    const allPcPokemon = (pcBoxes || []).flatMap(b => b.pokemon);
+    const allPcPokemon = [];
+    (pcBoxes || []).forEach((box, boxIndex) => {
+      (box.pokemon || []).forEach((pk, pokemonIndex) => {
+        if (pk) allPcPokemon.push({ pk, boxIndex, pokemonIndex });
+      });
+    });
     let pcBoxesHtml = '';
     if (allPcPokemon.length > 0) {
-      const slots = allPcPokemon.map(pk => {
+      const slots = allPcPokemon.map(({pk, boxIndex, pokemonIndex}) => {
         const id = pk.id || speciesNameToId(pk.species || '') || 0;
         if (!id) return '';
         const cacheIdx = cacheOffset++;
         _pkCache[cacheIdx] = pk;
         const sh = pk.shiny || false;
         const nm = pk.nickname || (typeof POKEMON_NAMES !== 'undefined' && POKEMON_NAMES[pk.species]) || pk.species;
-        return `<div class="box-slot ${sh?'shiny':''}" title="${nm} Nv.${pk.level}" onclick="_showPkByIdx(${cacheIdx})" style="cursor:pointer;">
-            <img class="box-sprite" src="${pokeApi(id)}" alt="${nm}" loading="lazy">
+        return `<div class="box-slot ${sh?'shiny':''} ${pk.dead?'dead-pokemon':''} ${pk.stolen?'stolen-pokemon':''} ${pk.blindado?'blindado-pokemon':''}" title="${nm} ${pk.stolen?`— 💰 ROBADO${pk.stolenBy?' POR '+pk.stolenBy:''} `:''}${pk.dead?'— 💀 MUERTO ':''}${pk.blindado?'— 🔒 BLINDADO ':''}Nv.${pk.level}" onclick="_showPkByIdx(${cacheIdx})" style="cursor:pointer;">
+            ${isAdmin ? `<div class="poke-admin-actions">
+              <button class="pokemon-life-toggle ${pk.dead?'revive':''}" onclick="event.stopPropagation();togglePokemonLifeFromProfile(${index},'pc',${boxIndex},${pokemonIndex})" title="${pk.dead?'Revivir Pokémon':'Marcar Pokémon como muerto'}" aria-label="${pk.dead?'Revivir Pokémon':'Marcar Pokémon como muerto'}">${pk.dead?'😇':'💀'}</button>
+              <button class="pokemon-stolen-toggle ${pk.stolen?'unsteal':''}" onclick="event.stopPropagation();togglePokemonStolenFromProfile(${index},'pc',${boxIndex},${pokemonIndex})" title="${pk.stolen?'Desrobar Pokémon':'Marcar Pokémon como robado'}" aria-label="${pk.stolen?'Desrobar Pokémon':'Marcar Pokémon como robado'}">${pk.stolen?'↩️':'💰'}</button>
+              <button class="pokemon-shield-toggle ${pk.blindado?'unshield':''}" onclick="event.stopPropagation();togglePokemonShieldFromProfile(${index},'pc',${boxIndex},${pokemonIndex})" title="${pk.blindado?'Desblindar Pokémon':'Blindar Pokémon'}" aria-label="${pk.blindado?'Desblindar Pokémon':'Blindar Pokémon'}">${pk.blindado?'🔓':'🔒'}</button>
+            </div>` : ''}
+            <img class="box-sprite" src="${pokemonSprite(pk, sh)}" alt="${nm}" loading="lazy">
           </div>`;
       }).join('');
       pcBoxesHtml = `<div class="section-label" style="margin-top:0.5rem;">📦 PC (${allPcPokemon.length} pokémon) <span style="font-size:0.6rem;opacity:0.5;">(pulsa para ver detalle)</span></div>
@@ -2749,7 +3424,7 @@
 
     // Mote y especie
     const rawSpecies = pk.species || pk.name || '???';
-    const speciesCap = (typeof POKEMON_NAMES!=='undefined'&&POKEMON_NAMES[rawSpecies]) || rawSpecies.charAt(0).toUpperCase()+rawSpecies.slice(1).toLowerCase().replace(/_/g,' ');
+    const speciesCap = pokemonDisplaySpecies(pk);
     const nickname = pk.nickname || speciesCap;
     const showSpecies = true; // siempre mostrar especie debajo del mote
 
@@ -2769,6 +3444,8 @@
       pk.gender && pk.gender !== '?' ? (pk.gender==='Macho'?'♂ Macho':pk.gender==='Hembra'?'♀ Hembra':pk.gender)                 : null,
       pk.nature                      ? translateField(pk.nature, typeof NATURES_ES!=='undefined'?NATURES_ES:null) : null,
       pk.shiny                       ? '✨ Shiny'                 : null,
+      pk.stolen                      ? `💰 Robado${pk.stolenBy ? ' por ' + pk.stolenBy : ''}` : null,
+      pk.blindado                    ? '🔒 Blindado'              : null,
       pk.pokeball                    ? '🔴 ' + translateField(pk.pokeball, typeof ITEMS_ES!=='undefined'?ITEMS_ES:null) : null,
       pk.happiness != null           ? `💛 ${pk.happiness}/255`  : null,
     ].filter(Boolean).map(b => `<span class="mpd-badge ${b.startsWith('✨')?'shiny-b':''}">${b}</span>`).join('');
@@ -2796,7 +3473,7 @@
     document.getElementById('mpd-content').innerHTML = `
       <div class="mpd-hero">
         ${spriteId
-          ? `<img class="mpd-hero-sprite ${pk.shiny?'shiny':''}" src="${pokeApi(spriteId, pk.shiny)}" alt="${nickname}">`
+          ? `<img class="mpd-hero-sprite ${pk.shiny?'shiny':''}" src="${pokemonSprite(pk, pk.shiny)}" alt="${nickname}">`
           : `<div style="width:88px;height:88px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;">❓</div>`
         }
         <div class="mpd-hero-info">
@@ -2869,6 +3546,7 @@
     if (id === 'modal-envelope') resetEnvelope();
     if (id === 'modal-participants') { renderParticipantsList(); backToList(); }
     if (id === 'modal-collection') { renderCollection(); document.getElementById('collection-btn').classList.add('cards-visible'); }
+    if (id === 'modal-ranking') { renderRanking(currentRankingFilter); }
     if (id === 'modal-notif') {
       renderNotifs();
       // Marcar como leídas tras 1s de visualización
@@ -2958,13 +3636,20 @@
   // Al conectar a la base de datos, reemplaza handleLogin() y handleRegister()
   // con llamadas fetch/API reales y elimina el uso de localStorage para credenciales.
 
-  function switchAuthTab(tab) {
-    document.getElementById('tab-login').classList.toggle('active', tab === 'login');
-    document.getElementById('tab-register').classList.toggle('active', tab === 'register');
-    document.getElementById('form-login').classList.toggle('hidden', tab !== 'login');
-    document.getElementById('form-register').classList.toggle('hidden', tab !== 'register');
+  function toggleLoginPassVisibility() {
+    const input = document.getElementById('login-pass');
+    const btn = document.getElementById('login-pass-toggle');
+    if (!input || !btn) return;
+    const showing = input.type === 'text';
+    input.type = showing ? 'password' : 'text';
+    btn.textContent = showing ? '👁️' : '🙈';
+    btn.title = showing ? 'Mostrar contraseña' : 'Ocultar contraseña';
+    btn.setAttribute('aria-label', showing ? 'Mostrar contraseña' : 'Ocultar contraseña');
+  }
+
+  function switchAuthTab() {
+    // El registro público está deshabilitado: solo existe el formulario de login.
     document.getElementById('login-msg').textContent = '';
-    document.getElementById('reg-msg').textContent = '';
   }
 
   function setAuthMsg(id, text, type) {
@@ -2989,29 +3674,12 @@
     closeModal('modal-auth');
   }
 
+  // El registro público de cuentas está deshabilitado. Las únicas cuentas
+  // válidas son la de administrador y las cuentas fijas creadas por
+  // initFixedAccounts(). Esta función se deja como no-operativa por si
+  // quedara alguna referencia antigua.
   function handleRegister() {
-    const user = document.getElementById('reg-user').value.trim();
-    const pass = document.getElementById('reg-pass').value;
-    const pass2 = document.getElementById('reg-pass2').value;
-    if (!user || !pass || !pass2) { setAuthMsg('reg-msg', 'Rellena todos los campos.', 'error'); return; }
-    if (pass !== pass2) { setAuthMsg('reg-msg', 'Las contraseñas no coinciden.', 'error'); return; }
-    if (pass.length < 6) { setAuthMsg('reg-msg', 'Mínimo 6 caracteres.', 'error'); return; }
-
-    // ── Conectar a BD aquí: reemplaza este bloque con fetch('/api/register', ...) ──
-    const stored = JSON.parse(localStorage.getItem('ds3-users') || '{}');
-    if (stored[user]) { setAuthMsg('reg-msg', 'Ese nombre ya está en uso.', 'error'); return; }
-    const emojis = ['🔥','💧','⚡','🌿','👻','🐉','🌙','💎','🦋','🌊'];
-    const emoji = emojis[Object.keys(stored).length % emojis.length];
-    stored[user] = { pass: btoa(pass), emoji };
-    localStorage.setItem('ds3-users', JSON.stringify(stored));
-    // ─────────────────────────────────────────────────────────────────────────────
-
-    setAuthMsg('reg-msg', '¡Cuenta creada! Iniciando sesión…', 'success');
-    setTimeout(() => {
-      sessionStorage.setItem('ds3-session', JSON.stringify({ user, emoji }));
-      updateAuthUI(user, emoji);
-      closeModal('modal-auth');
-    }, 800);
+    setAuthMsg('login-msg', 'El registro de cuentas está deshabilitado.', 'error');
   }
 
   function handleLogout() {
@@ -3081,8 +3749,139 @@
   }
   initAdminAccount();
 
+  // ── CUENTAS FIJAS ──────────────────────────────────────────────────────────
+  // El registro público está deshabilitado. Solo existen la cuenta de admin
+  // y estas 13 cuentas fijas: 12 para jugadores + 1 para pruebas.
+  const FIXED_ACCOUNTS = [
+    { user: 'Bolushow',  pass: 'MuniereRata',    emoji: '🥵​' },
+    { user: "Nimiel",    pass: 'FlorenelCulo',   emoji: '🍀' },
+    { user: 'Fire',      pass: 'DefensordeGaya', emoji: '🦇' },
+    { user: 'Lordjire',  pass: 'EufareiX10',     emoji: '🐵' },
+    { user: 'Bobal',     pass: 'ArribaChuta',    emoji: '⚽' },
+    { user: "SamGi'S",   pass: 'BuenasSamir',    emoji: '🐝' },
+    { user: 'ElOtaku',   pass: 'PolvoraXD',      emoji: '💣' },
+    { user: 'Khalghays', pass: 'VivaCrabominable', emoji: '💀' },
+    { user: 'ElNestor',  pass: 'BotellaWhisky',  emoji: '🗿' },
+    { user: 'Jonny',     pass: 'FandeCarvajal',  emoji: '🥶' },
+    { user: 'Visturin',  pass: 'ciGalaAcre',     emoji: '🔥' },
+    { user: 'MaVeMu',    pass: 'RitcherMain',    emoji: '⚔️' },
+    { user: 'Prueba',    pass: 'Prueba#2026',    emoji: '🧪' },
+  ];
+
+  function initFixedAccounts() {
+    const stored = JSON.parse(localStorage.getItem('ds3-users') || '{}');
+    let changed = false;
+    FIXED_ACCOUNTS.forEach(({ user, pass, emoji }) => {
+      if (!stored[user]) {
+        stored[user] = { pass: btoa(pass), emoji };
+        changed = true;
+      }
+    });
+    if (changed) localStorage.setItem('ds3-users', JSON.stringify(stored));
+  }
+  initFixedAccounts();
+
   function checkIfAdmin(user) {
     return user === ADMIN_USER;
+  }
+
+  // ── RANKING DE MUERTES ────────────────────────────────────────────────────
+  // Las 12 cuentas de jugadores (admin y Prueba quedan fuera del ranking).
+  // El "modo" de cada jugador determina el filtro Radical / Normal.
+  const RADICAL_USERS = ['Bolushow', 'Nimiel', 'Fire', 'ElNestor', 'Jonny', 'Visturin', 'MaVeMu'];
+
+  function getRankingAccounts() {
+    return FIXED_ACCOUNTS.filter(acc => acc.user !== 'Prueba');
+  }
+
+  function getUserMode(username) {
+    return RADICAL_USERS.includes(username) ? 'radical' : 'normal';
+  }
+
+  // Garantiza que cada una de las 12 cuentas de jugador tenga un participante
+  // asociado (por nombre) en la lista de participantes del admin. Si una cuenta
+  // aún no tiene partida/save subida, se crea una entrada vacía como placeholder.
+  function ensureAccountParticipants() {
+    if (typeof getAdminParticipants !== 'function' || typeof saveAdminParticipants !== 'function') return;
+    const parts = getAdminParticipants() || [];
+    const accounts = getRankingAccounts();
+    let changed = false;
+    accounts.forEach(acc => {
+      const existing = parts.find(p => p && (p.name || '').trim().toLowerCase() === acc.user.trim().toLowerCase());
+      if (!existing) {
+        parts.push({
+          name: acc.user,
+          emoji: acc.emoji,
+          status: 'activo',
+          team: [],
+          pcBoxes: [],
+          box: []
+        });
+        changed = true;
+      } else if (existing.emoji !== acc.emoji) {
+        // Mantener el emoji del participante sincronizado con el de su cuenta.
+        existing.emoji = acc.emoji;
+        changed = true;
+      }
+    });
+    if (changed) saveAdminParticipants(parts);
+  }
+
+  // Cuenta las muertes de un usuario: usa el contador persistente deathCount
+  // de la partida (se suma al matar un pokémon, revivirlo NO lo resta).
+  function getDeathCountForUser(username) {
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const uname = (username || '').trim().toLowerCase();
+    let count = 0;
+    parts.forEach(p => {
+      if (!p || (p.name || '').trim().toLowerCase() !== uname) return;
+      count += p.deathCount || 0;
+    });
+    return count;
+  }
+
+  let currentRankingFilter = 'all';
+
+  function setRankingFilter(filter) {
+    currentRankingFilter = filter;
+    document.querySelectorAll('.ranking-filter-btn').forEach(btn => btn.classList.remove('active'));
+    const activeBtn = document.getElementById(`ranking-filter-${filter}`);
+    if (activeBtn) activeBtn.classList.add('active');
+    renderRanking(filter);
+  }
+
+  function renderRanking(filter) {
+    filter = filter || currentRankingFilter || 'all';
+    const list = document.getElementById('ranking-list');
+    if (!list) return;
+
+    let accounts = getRankingAccounts();
+    if (filter === 'radical') accounts = accounts.filter(acc => getUserMode(acc.user) === 'radical');
+    else if (filter === 'normal') accounts = accounts.filter(acc => getUserMode(acc.user) === 'normal');
+
+    const ranked = accounts
+      .map(acc => ({ ...acc, deaths: getDeathCountForUser(acc.user), mode: getUserMode(acc.user) }))
+      .sort((a, b) => a.deaths - b.deaths);
+
+    if (!ranked.length) {
+      list.innerHTML = '<div class="ranking-empty">📭 No hay jugadores en este filtro.</div>';
+      return;
+    }
+
+    list.innerHTML = ranked.map((acc, i) => {
+      const rankPos = i + 1;
+      const topClass = rankPos === 1 ? 'top1' : rankPos === 2 ? 'top2' : rankPos === 3 ? 'top3' : '';
+      const rankIcon = rankPos === 1 ? '🥇' : rankPos === 2 ? '🥈' : rankPos === 3 ? '🥉' : `#${rankPos}`;
+      return `<div class="ranking-row ${topClass}">
+        <span class="ranking-rank">${rankIcon}</span>
+        <span class="ranking-emoji">${acc.emoji || '❔'}</span>
+        <div class="ranking-info">
+          <span class="ranking-name">${acc.user}</span>
+          <span class="ranking-mode-badge ${acc.mode}">${acc.mode === 'radical' ? '☠️ Radical' : '🎮 Normal'}</span>
+        </div>
+        <span class="ranking-deaths">💀 ${acc.deaths}</span>
+      </div>`;
+    }).join('');
   }
 
   // Sobreescribir updateAuthUI para gestionar visibilidad del botón admin
@@ -3106,6 +3905,15 @@
       loadAdminNotifs();
     }
   };
+
+  // Restaurar de nuevo la sesión después de instalar la lógica de administrador.
+  // La restauración original ocurre antes de que exista este override y no activaba isAdmin.
+  (function restoreAdminSessionAfterOverride() {
+    try {
+      const session = JSON.parse(sessionStorage.getItem('ds3-session') || 'null');
+      if (session?.user) updateAuthUI(session.user, session.emoji || '👤');
+    } catch (_) {}
+  })();
 
   // ── Tabs del panel admin ───────────────────────────────────────────────────
   function switchAdminTab(tab) {
@@ -3135,26 +3943,198 @@
     }
   }
 
+  function adminPokemonName(pk) {
+    if (!pk) return 'Pokémon';
+    return pk.nickname || pokemonDisplaySpecies(pk) || pk.species || pk.name || 'Pokémon';
+  }
+
+  function adminPokemonManagerHtml(p, participantIndex) {
+    const team = Array.isArray(p.team) ? p.team : [];
+    const pcBoxes = Array.isArray(p.pcBoxes) ? p.pcBoxes : [];
+    const legacyBox = Array.isArray(p.box) ? p.box : [];
+
+    const card = (pk, location, boxIndex, pokemonIndex) => {
+      const dead = !!pk.dead;
+      const stolen = !!pk.stolen;
+      const blindado = !!pk.blindado;
+      const name = adminPokemonName(pk);
+      const clickArgs = location === 'team'
+        ? `${participantIndex},'team',-1,${pokemonIndex}`
+        : location === 'pc'
+          ? `${participantIndex},'pc',${boxIndex},${pokemonIndex}`
+          : `${participantIndex},'box',-1,${pokemonIndex}`;
+      const stateParts = [];
+      if (dead) stateParts.push('Muerto');
+      if (stolen) stateParts.push('Robado');
+      if (blindado) stateParts.push('Blindado');
+      const stateText = stateParts.length ? stateParts.join(' · ') : 'Vivo';
+      return `<div class="admin-pokemon-card ${dead?'dead':''} ${stolen?'stolen':''} ${blindado?'blindado':''}"
+                   onclick="adminTogglePokemonDead(${clickArgs})"
+                   role="button" tabindex="0"
+                   onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();adminTogglePokemonDead(${clickArgs});}"
+                   title="${dead?'Pulsa para revivir':'Pulsa para marcar como muerto'}">
+        <img src="${pokemonSprite(pk, !!pk.shiny)}" alt="${name}">
+        <div class="admin-pokemon-info">
+          <span class="admin-pokemon-name">${dead?'💀 ':''}${stolen?'💰 ':''}${blindado?'🔒 ':''}${name}</span>
+          <span class="admin-pokemon-state">${stateText} · Nv. ${pk.level ?? '?'}</span>
+        </div>
+        <div class="admin-pokemon-actions">
+          <button class="admin-death-btn ${dead?'revive':''}" onclick="event.stopPropagation();adminTogglePokemonDead(${clickArgs})" title="${dead?'Revivir Pokémon':'Marcar como muerto'}" aria-label="${dead?'Revivir Pokémon':'Marcar como muerto'}">${dead?'😇':'💀'}</button>
+          <button class="admin-stolen-btn ${stolen?'unsteal':''}" onclick="event.stopPropagation();adminToggleStolen(${clickArgs})" title="${stolen?'Desrobar Pokémon':'Marcar como robado'}" aria-label="${stolen?'Desrobar Pokémon':'Marcar como robado'}">${stolen?'↩️':'💰'}</button>
+          <button class="admin-shield-btn ${blindado?'unshield':''}" onclick="event.stopPropagation();adminToggleBlindado(${clickArgs})" title="${blindado?'Desblindar Pokémon':'Marcar como blindado'}" aria-label="${blindado?'Desblindar Pokémon':'Marcar como blindado'}">${blindado?'🔓':'🔒'}</button>
+        </div>
+      </div>`;
+    };
+
+    const teamHtml = team.length
+      ? `<div class="admin-pokemon-manager-title">⚔️ Equipo</div><div class="admin-pokemon-grid">${team.map((pk,i)=>card(pk,'team',-1,i)).join('')}</div>`
+      : '<div class="admin-pokemon-manager-title">⚔️ Equipo vacío</div>';
+
+    let pcHtml = '';
+    if (pcBoxes.length) {
+      const cards = [];
+      pcBoxes.forEach((box, bi) => (box.pokemon || []).forEach((pk, pi) => {
+        if (pk) cards.push(card(pk,'pc',bi,pi));
+      }));
+      if (cards.length) pcHtml = `<div class="admin-pokemon-manager-title">📦 Cajas</div><div class="admin-pokemon-grid">${cards.join('')}</div>`;
+    } else if (legacyBox.length) {
+      pcHtml = `<div class="admin-pokemon-manager-title">📦 Caja</div><div class="admin-pokemon-grid">${legacyBox.map((pk,i)=>card(pk,'box',-1,i)).join('')}</div>`;
+    }
+    return teamHtml + pcHtml;
+  }
+
+  function toggleAdminPokemonManager(i) {
+    const panel = document.getElementById(`admin-pokemon-manager-${i}`);
+    if (panel) panel.classList.toggle('open');
+  }
+
+  async function adminTogglePokemonDead(participantIndex, location, boxIndex, pokemonIndex) {
+    const parts = getAdminParticipants() || [];
+    const participant = parts[participantIndex];
+    if (!participant) return;
+
+    let pk = null;
+    if (location === 'team') pk = participant.team?.[pokemonIndex];
+    else if (location === 'pc') pk = participant.pcBoxes?.[boxIndex]?.pokemon?.[pokemonIndex];
+    else if (location === 'box') pk = participant.box?.[pokemonIndex];
+    if (!pk) return;
+
+    const wasDead = !!pk.dead;
+    pk.dead = !pk.dead;
+    if (!wasDead && pk.dead) {
+      // Se acaba de marcar como muerto: suma 1 muerte permanente a la partida.
+      // Revivirlo (el caso contrario) NO resta esta muerte.
+      participant.deathCount = (participant.deathCount || 0) + 1;
+    }
+    saveAdminParticipants(parts);
+    if (typeof saveParticipantToDB === 'function') await saveParticipantToDB(participant);
+    renderAdminParticipants();
+    renderParticipantsList();
+    const panel = document.getElementById(`admin-pokemon-manager-${participantIndex}`);
+    if (panel) panel.classList.add('open');
+  }
+
+  async function adminToggleStolen(participantIndex, location, boxIndex, pokemonIndex) {
+    const parts = getAdminParticipants() || [];
+    const participant = parts[participantIndex];
+    if (!participant) return;
+
+    let pk = null;
+    if (location === 'team') pk = participant.team?.[pokemonIndex];
+    else if (location === 'pc') pk = participant.pcBoxes?.[boxIndex]?.pokemon?.[pokemonIndex];
+    else if (location === 'box') pk = participant.box?.[pokemonIndex];
+    if (!pk) return;
+
+    pk.stolen = !pk.stolen;
+    if (pk.stolen) {
+      pk.stolenBy = 'Admin';
+      pk.stolenAt = new Date().toISOString();
+    } else {
+      delete pk.stolenBy;
+      delete pk.stolenAt;
+    }
+
+    saveAdminParticipants(parts);
+    if (typeof saveParticipantToDB === 'function') await saveParticipantToDB(participant);
+    renderAdminParticipants();
+    renderParticipantsList();
+    const panel = document.getElementById(`admin-pokemon-manager-${participantIndex}`);
+    if (panel) panel.classList.add('open');
+  }
+
+  async function adminToggleBlindado(participantIndex, location, boxIndex, pokemonIndex) {
+    const parts = getAdminParticipants() || [];
+    const participant = parts[participantIndex];
+    if (!participant) return;
+
+    let pk = null;
+    if (location === 'team') pk = participant.team?.[pokemonIndex];
+    else if (location === 'pc') pk = participant.pcBoxes?.[boxIndex]?.pokemon?.[pokemonIndex];
+    else if (location === 'box') pk = participant.box?.[pokemonIndex];
+    if (!pk) return;
+
+    pk.blindado = !pk.blindado;
+    saveAdminParticipants(parts);
+    if (typeof saveParticipantToDB === 'function') await saveParticipantToDB(participant);
+    renderAdminParticipants();
+    renderParticipantsList();
+    const panel = document.getElementById(`admin-pokemon-manager-${participantIndex}`);
+    if (panel) panel.classList.add('open');
+  }
+
+  async function togglePokemonLifeFromProfile(participantIndex, location, boxIndex, pokemonIndex) {
+    if (!isAdmin) return;
+    await adminTogglePokemonDead(participantIndex, location, boxIndex, pokemonIndex);
+    showProfile(participantIndex);
+  }
+
+  async function togglePokemonStolenFromProfile(participantIndex, location, boxIndex, pokemonIndex) {
+    if (!isAdmin) return;
+    await adminToggleStolen(participantIndex, location, boxIndex, pokemonIndex);
+    showProfile(participantIndex);
+  }
+
+  async function togglePokemonShieldFromProfile(participantIndex, location, boxIndex, pokemonIndex) {
+    if (!isAdmin) return;
+    await adminToggleBlindado(participantIndex, location, boxIndex, pokemonIndex);
+    showProfile(participantIndex);
+  }
+
   function renderAdminParticipants() {
+    if (typeof ensureAccountParticipants === 'function') ensureAccountParticipants();
     const parts = getAdminParticipants() || [];
     const list = document.getElementById('admin-part-list');
     if (!list) return;
-    // Mostrar/ocultar zona de upload
     const dropZone = document.getElementById('admin-save-drop');
     if (dropZone) dropZone.style.display = 'flex';
     if (parts.length === 0) {
       list.innerHTML = '<div style="font-size:0.78rem;color:rgba(232,232,255,0.3);text-align:center;padding:0.5rem 0;">Sin participantes — sube un .rxdata para añadir</div>';
       return;
     }
-    list.innerHTML = parts.map((p, i) => `
-      <div class="admin-part-row">
-        <img src="${pokeApi(p.pokemon || (p.team && p.team[0]?.id) || 1)}" alt="">
-        <span class="admin-part-name">${p.name}${p.team ? ' <span style="font-size:0.6rem;opacity:0.5;">⚔️'+p.team.length+' 📦'+p.box.length+'</span>' : ''}</span>
-        <span class="admin-part-status ${p.status === 'eliminado' ? 'eliminado' : ''}"
-          onclick="adminToggleStatus(${i})">${p.status === 'eliminado' ? 'Eliminado' : 'Activo'}</span>
-        <button class="admin-part-del" onclick="adminDeleteParticipant(${i})" title="Eliminar">🗑</button>
-      </div>
-    `).join('');
+    list.innerHTML = parts.map((p, i) => {
+      const teamCount = Array.isArray(p.team) ? p.team.length : 0;
+      const pcCount = Array.isArray(p.pcBoxes)
+        ? p.pcBoxes.reduce((n,b)=>n+(Array.isArray(b.pokemon)?b.pokemon.filter(Boolean).length:0),0)
+        : (Array.isArray(p.box) ? p.box.length : 0);
+      const deadCount = [
+        ...(p.team || []),
+        ...(p.box || []),
+        ...(p.pcBoxes || []).flatMap(b => b.pokemon || [])
+      ].filter(pk => pk && pk.dead).length;
+      return `<div>
+        <div class="admin-part-row">
+          <img src="${pokemonSprite((p.team && p.team[0]) || {id:p.pokemon || 1}, !!p.team?.[0]?.shiny)}" alt="">
+          <span class="admin-part-name">${p.name} <span style="font-size:0.6rem;opacity:0.5;">⚔️${teamCount} 📦${pcCount}${deadCount?' ☠'+deadCount:''}</span></span>
+          <button class="admin-manage-pokemon-btn" onclick="toggleAdminPokemonManager(${i})">Pokémon</button>
+          <button class="admin-insert-save-btn" onclick="adminTriggerInsertSave(${i})" title="Insertar partida (.rxdata) en ${p.name}" aria-label="Insertar partida en ${p.name}">📥</button>
+          <button class="admin-reset-data-btn" onclick="adminResetParticipantData(${i})" title="Borrar datos de ${p.name} (muertes, save, equipo, PC…) sin borrar la cuenta" aria-label="Borrar datos de ${p.name}">🔄</button>
+          <span class="admin-part-status ${p.status === 'eliminado' ? 'eliminado' : ''}"
+            onclick="adminToggleStatus(${i})">${p.status === 'eliminado' ? 'Eliminado' : 'Activo'}</span>
+          <button class="admin-part-del" onclick="adminDeleteParticipant(${i})" title="Eliminar">🗑</button>
+        </div>
+        <div class="admin-pokemon-manager" id="admin-pokemon-manager-${i}">${adminPokemonManagerHtml(p,i)}</div>
+      </div>`;
+    }).join('');
   }
 
   // ── PARSER DE SAVE RXDATA — puerto fiel del script Python ─────────────────
@@ -3239,7 +4219,7 @@
 
   // Pre-calcular índices de los campos que nos interesan
   const FIELD_NAMES = [
-    '@species','@level','@gender','@shiny','@nature','@ability','@ability_index',
+    '@species','@form','@level','@gender','@shiny','@nature','@ability','@ability_index',
     '@hp','@totalhp','@attack','@defense','@spatk','@spdef','@speed',
     '@happiness','@poke_ball','@item','@iv','@ev','@moves','@obtain_level'
   ];
@@ -3381,69 +4361,166 @@
     return result;
   }
 
-  // Leer array de movimientos @moves[
+  // ── Lector Marshal conservador para movimientos ───────────────────────────
+  // Avanza por un valor Ruby Marshal completo. Si no reconoce la estructura,
+  // devuelve -1 en vez de continuar leyendo bytes al azar.
+  function skipMarshalValue(d, pos, depth = 0) {
+    if (pos < 0 || pos >= d.length || depth > 40) return -1;
+    const tag = d[pos++];
+    let n, i, np;
+    switch (tag) {
+      case 0x30: // nil
+      case 0x54: // true
+      case 0x46: // false
+        return pos;
+      case 0x69: // fixnum
+      case 0x3B: // symbol link
+      case 0x40: // object link
+        [, np] = readFixnum(d, pos); return np;
+      case 0x3A: // symbol
+      case 0x22: // string
+        [n, np] = readFixnum(d, pos);
+        return n >= 0 && np + n <= d.length ? np + n : -1;
+      case 0x5B: // array
+        [n, pos] = readFixnum(d, pos);
+        if (n < 0 || n > 100000) return -1;
+        for (i = 0; i < n; i++) { pos = skipMarshalValue(d, pos, depth + 1); if (pos < 0) return -1; }
+        return pos;
+      case 0x7B: // hash
+        [n, pos] = readFixnum(d, pos);
+        if (n < 0 || n > 100000) return -1;
+        for (i = 0; i < n * 2; i++) { pos = skipMarshalValue(d, pos, depth + 1); if (pos < 0) return -1; }
+        return pos;
+      case 0x7D: // hash con default
+        [n, pos] = readFixnum(d, pos);
+        if (n < 0 || n > 100000) return -1;
+        for (i = 0; i < n * 2 + 1; i++) { pos = skipMarshalValue(d, pos, depth + 1); if (pos < 0) return -1; }
+        return pos;
+      case 0x6F: // object: clase + ivars
+        pos = skipMarshalValue(d, pos, depth + 1); // clase (símbolo)
+        if (pos < 0) return -1;
+        [n, pos] = readFixnum(d, pos);
+        if (n < 0 || n > 10000) return -1;
+        for (i = 0; i < n; i++) {
+          pos = skipMarshalValue(d, pos, depth + 1); // nombre campo
+          if (pos < 0) return -1;
+          pos = skipMarshalValue(d, pos, depth + 1); // valor
+          if (pos < 0) return -1;
+        }
+        return pos;
+      case 0x49: // IVar wrapper: objeto + atributos
+        pos = skipMarshalValue(d, pos, depth + 1);
+        if (pos < 0) return -1;
+        [n, pos] = readFixnum(d, pos);
+        if (n < 0 || n > 10000) return -1;
+        for (i = 0; i < n; i++) {
+          pos = skipMarshalValue(d, pos, depth + 1);
+          if (pos < 0) return -1;
+          pos = skipMarshalValue(d, pos, depth + 1);
+          if (pos < 0) return -1;
+        }
+        return pos;
+      case 0x65: // extended module + object
+      case 0x43: // user class + object
+        pos = skipMarshalValue(d, pos, depth + 1);
+        return pos < 0 ? -1 : skipMarshalValue(d, pos, depth + 1);
+      case 0x75: // user marshal: clase + payload
+      case 0x55: // user defined object
+        pos = skipMarshalValue(d, pos, depth + 1);
+        return pos < 0 ? -1 : skipMarshalValue(d, pos, depth + 1);
+      case 0x6C: // bignum
+        if (pos >= d.length) return -1;
+        pos++; // signo
+        [n, pos] = readFixnum(d, pos);
+        return n >= 0 && pos + n * 2 <= d.length ? pos + n * 2 : -1;
+      case 0x66: { // float (cadena)
+        [n, pos] = readFixnum(d, pos);
+        return n >= 0 && pos + n <= d.length ? pos + n : -1;
+      }
+      default:
+        return -1;
+    }
+  }
+
+  function readMarshalSymbol(d, pos, symTable) {
+    if (pos < 0 || pos >= d.length) return [null, -1];
+    if (d[pos] === 0x3A) {
+      const [len, np] = readFixnum(d, pos + 1);
+      if (len < 0 || np + len > d.length) return [null, -1];
+      return [decodeBytes(d, np, len), np + len];
+    }
+    if (d[pos] === 0x3B) {
+      const [idx, np] = readFixnum(d, pos + 1);
+      return [symTable[idx] || null, np];
+    }
+    return [null, -1];
+  }
+
+  function findFieldValuePosition(chunk, fieldName, fieldIdx) {
+    const direct = enc(fieldName);
+    let from = 0;
+    while (from < chunk.length) {
+      const p = findBytes(chunk, direct, from);
+      if (p === -1) break;
+      const vp = p + direct.length;
+      if (vp < chunk.length) return vp;
+      from = p + 1;
+    }
+    if (fieldIdx < 0) return -1;
+    for (let i = 0; i < chunk.length - 2; i++) {
+      if (chunk[i] !== 0x3B) continue;
+      const [idx, np] = readFixnum(chunk, i + 1);
+      if (idx === fieldIdx) return np;
+    }
+    return -1;
+  }
+
+  // Lee exclusivamente el array real de @moves. Ante cualquier desalineación,
+  // devuelve [] y nunca busca nombres sueltos por el segmento.
   function getMoves(chunk, symIdx, symTable) {
-    // Buscar array: directo o via symlink
-    let arrAt = -1;
-    const dp = findBytes(chunk, enc('@moves['));
-    if (dp !== -1) {
-      arrAt = dp + 6; // apunta al '['
-    } else if (symIdx >= 0) {
-      const lim = Math.min(chunk.length - 3, 50000);
-      for (let i = 0; i < lim; i++) {
-        if (chunk[i] === 0x3B) {
-          const [li, ap] = readFixnum(chunk, i + 1);
-          if (li === symIdx) { arrAt = ap; break; }
+    let arrAt = findFieldValuePosition(chunk, '@moves', symIdx);
+    if (arrAt < 0 || chunk[arrAt] !== 0x5B) return [];
+
+    let count, pos;
+    [count, pos] = readFixnum(chunk, arrAt + 1);
+    if (count < 0 || count > 4) return [];
+
+    const moves = [];
+    for (let mi = 0; mi < count; mi++) {
+      if (pos >= chunk.length || chunk[pos] !== 0x6F) return [];
+      pos++;
+      let className;
+      [className, pos] = readMarshalSymbol(chunk, pos, symTable);
+      if (pos < 0 || !className || !/Move/i.test(className)) return [];
+
+      let ivarCount;
+      [ivarCount, pos] = readFixnum(chunk, pos);
+      if (ivarCount < 0 || ivarCount > 30) return [];
+
+      let moveName = null;
+      let movePP = null;
+      for (let fi2 = 0; fi2 < ivarCount; fi2++) {
+        let fname;
+        [fname, pos] = readMarshalSymbol(chunk, pos, symTable);
+        if (pos < 0 || !fname) return [];
+
+        const valueStart = pos;
+        if (fname === '@id') {
+          let value;
+          [value, pos] = readMarshalSymbol(chunk, pos, symTable);
+          if (pos < 0) return [];
+          if (value && /^[A-Z][A-Z0-9_]{1,40}$/.test(value)) moveName = value;
+        } else if (fname === '@pp' && chunk[pos] === 0x69) {
+          [movePP, pos] = readFixnum(chunk, pos + 1);
+        } else {
+          pos = skipMarshalValue(chunk, valueStart);
+          if (pos < 0) return [];
         }
       }
-    }
-    if (arrAt < 0) return [];
-    const mc = chunk.slice(arrAt, arrAt + 2000);
-    if (mc[0] !== 0x5B) return [];
-    const moves = [];
-    const [arrCount, sp] = readFixnum(mc, 1);
-    let pos = sp;
-    for (let mi = 0; mi < arrCount && moves.length < 4; mi++) {
-      if (pos >= mc.length) break;
-      // Cada movimiento es un objeto 'o'
-      if (mc[pos] !== 0x6F) { pos++; continue; }
-      pos++;
-      // Saltar la clase del objeto (símbolo nuevo o symlink)
-      if (mc[pos] === 0x3A) {
-        const nl = mc[pos+1]>=6?mc[pos+1]-5:mc[pos+1]; pos += 2+nl;
-      } else if (mc[pos] === 0x3B) {
-        const [,np] = readFixnum(mc, pos+1); pos = np;
-      } else { pos++; continue; }
-      // Leer ivar count
-      const [icount, ip] = readFixnum(mc, pos); pos = ip;
-      let moveName = null, movePP = null;
-      for (let fi = 0; fi < icount && pos < mc.length; fi++) {
-        // Nombre del campo
-        let fname = null;
-        if (mc[pos] === 0x3A) {
-          const nl = mc[pos+1]>=6?mc[pos+1]-5:mc[pos+1];
-          fname = decodeBytes(mc, pos+2, nl); pos += 2+nl;
-        } else if (mc[pos] === 0x3B) {
-          const [idx, np] = readFixnum(mc, pos+1);
-          fname = symTable[idx] || null; pos = np;
-        } else { pos++; break; }
-        // Valor del campo
-        if (pos >= mc.length) break;
-        if (mc[pos] === 0x3A) {
-          const nb = mc[pos+1]; const nl = nb>=6?nb-5:nb;
-          const val = decodeBytes(mc, pos+2, nl); pos += 2+nl;
-          if (fname === '@id' && /^[A-Z][A-Z_0-9]{1,}$/.test(val)) moveName = val;
-        } else if (mc[pos] === 0x3B) {
-          const [idx, np] = readFixnum(mc, pos+1);
-          const val = symTable[idx] || ''; pos = np;
-          if (fname === '@id' && /^[A-Z][A-Z_0-9]{1,}$/.test(val)) moveName = val;
-        } else if (mc[pos] === 0x69) {
-          const [val, np] = readFixnum(mc, pos+1); pos = np;
-          if (fname === '@pp') movePP = val;
-        } else if (mc[pos] === 0x54 || mc[pos] === 0x46 || mc[pos] === 0x30) { pos++; }
-        else pos++;
-      }
-      if (moveName) moves.push({ name: moveName, pp: movePP ?? '?' });
+
+      if (!moveName) return [];
+      if (movePP !== null && (movePP < 0 || movePP > 99)) movePP = null;
+      moves.push({ name: moveName, pp: movePP ?? '?' });
     }
     return moves;
   }
@@ -3470,11 +4547,13 @@
     fi = fi || {};
 
     const species = getSym(chunk, enc('@species'), fi['@species'] ?? -1, symTable);
-    if (!species || !/^[A-Z][A-Z0-9_]+$/.test(species)) return null;
+    if (!species || !/^[A-Z][A-Z0-9_]{1,40}$/.test(species)) return null;
+    if (typeof POKEMON_NAMES !== 'undefined' && Object.keys(POKEMON_NAMES).length > 0 && !POKEMON_NAMES[species]) return null;
 
     const pk = { species };
 
     pk.level      = getInt(chunk, enc('@level'),    fi['@level']    ?? -1) ?? 1;
+    if (!Number.isInteger(pk.level) || pk.level < 1 || pk.level > 100) return null;
     pk.hp         = getInt(chunk, enc('@hp'),        fi['@hp']       ?? -1);
     pk.total_hp   = getInt(chunk, enc('@totalhp'),   fi['@totalhp']  ?? -1);
     pk.attack     = getInt(chunk, enc('@attack'),    fi['@attack']   ?? -1);
@@ -3505,6 +4584,8 @@
       } else pk.shiny = false;
     }
 
+    pk.form     = getInt(chunk, enc('@form'), fi['@form'] ?? -1) ?? 0;
+    if (!Number.isInteger(pk.form) || pk.form < 0 || pk.form > 50) pk.form = 0;
     pk.nature   = getSym(chunk, enc('@nature'),   fi['@nature']   ?? -1, symTable);
     pk.ability  = getSym(chunk, enc('@ability'),  fi['@ability']  ?? -1, symTable);
     pk.pokeball = getSym(chunk, enc('@poke_ball'),fi['@poke_ball']?? -1, symTable);
@@ -3524,33 +4605,55 @@
   // ── parseSaveFile — función principal ───────────────────────────────────────
 
   // ── parsePC — parsea el PC completo en UNA sola caja plana ──────────────────
-  function parsePC(raw, symTable, fi) {
-    const pc_start = findBytes(raw, enc('PokemonStorage'));
-    if (pc_start === -1) return [];
+  function findPokemonObjectPositions(raw, startAt, endAt, symTable) {
+    const positions = [];
+    const classIndexes = [];
+    symTable.forEach((name, idx) => {
+      if (typeof name === 'string' && /(^|::)Pokemon$/i.test(name)) classIndexes.push(idx);
+    });
 
-    // Clase Pokemon en symTable[9], link byte = 14 = 0x0E
-    const PK_PATTERN = new Uint8Array([0x6F, 0x3B, 0x0E]);
-    const pc_end = Math.min(raw.length, pc_start + 4_000_000);
-
-    const allPkPos = [];
-    let si = pc_start;
-    while (si < pc_end) {
-      const p = findBytes(raw, PK_PATTERN, si);
-      if (p === -1 || p >= pc_end) break;
-      allPkPos.push(p);
-      si = p + 1;
+    // Primera aparición como símbolo nuevo: o:Pokemon / o:GameData::Pokemon
+    for (let i = startAt; i < endAt - 5; i++) {
+      if (raw[i] !== 0x6F || raw[i + 1] !== 0x3A) continue;
+      const [len, np] = readFixnum(raw, i + 2);
+      if (len < 1 || len > 80 || np + len > endAt) continue;
+      const cls = decodeBytes(raw, np, len);
+      if (/(^|::)Pokemon$/i.test(cls)) positions.push(i);
     }
+
+    // Resto de apariciones mediante enlace a símbolo, sin asumir un índice fijo.
+    if (classIndexes.length) {
+      for (let i = startAt; i < endAt - 3; i++) {
+        if (raw[i] !== 0x6F || raw[i + 1] !== 0x3B) continue;
+        const [idx] = readFixnum(raw, i + 2);
+        if (classIndexes.includes(idx)) positions.push(i);
+      }
+    }
+    return [...new Set(positions)].sort((a, b) => a - b);
+  }
+
+  function parsePC(raw, symTable, fi) {
+    const pcStart = findBytes(raw, enc('PokemonStorage'));
+    if (pcStart === -1) return [];
+    const pcEnd = Math.min(raw.length, pcStart + 4_000_000);
+    const allPkPos = findPokemonObjectPositions(raw, pcStart, pcEnd, symTable);
     if (allPkPos.length === 0) return [];
 
-    const pokemon = allPkPos
-      .map((p, i) => parsePokemonPC(raw, p, allPkPos[i + 1] ?? (p + 8000), symTable, fi))
-      .filter(pk => pk !== null);
-
-    return pokemon.length > 0 ? [{ name: 'PC', num: 1, pokemon }] : [];
+    const seen = new Set();
+    const pokemon = [];
+    for (let i = 0; i < allPkPos.length; i++) {
+      const p = parsePokemonPC(raw, allPkPos[i], allPkPos[i + 1] ?? Math.min(pcEnd, allPkPos[i] + 20000), symTable, fi);
+      if (!p || !p.species) continue;
+      const key = [p.species, p.nickname || '', p.level, p.hp ?? '', (p.moves || []).map(m => m.name).join(',')].join('|');
+      if (seen.has(key)) continue;
+      seen.add(key);
+      pokemon.push(p);
+    }
+    return pokemon.length ? [{ name: 'PC', num: 1, pokemon }] : [];
   }
 
   function parsePokemonPC(raw, absPos, absEnd, symTable, fi) {
-    const seg = raw.slice(absPos, Math.min(absEnd, absPos + 8000));
+    const seg = raw.slice(absPos, Math.min(absEnd, absPos + 20000));
     const p = parsePokemon(seg, symTable, fi);
     if (!p || !p.species) return null;
 
@@ -3559,6 +4662,7 @@
       nickname:  p.nickname || null,
       name:      p.nickname || (typeof POKEMON_NAMES !== 'undefined' && POKEMON_NAMES[p.species]) || p.species,
       species:   p.species,
+      form:      p.form ?? 0,
       level:     p.level ?? 1,
       shiny:     p.shiny ?? false,
       gender:    p.gender,
@@ -3576,126 +4680,345 @@
   }
 
 
-  function parseSaveFile(raw) {
-    if (raw[0] !== 0x04 || raw[1] !== 0x08)
-      throw new Error('No es un archivo Marshal válido');
+  // ── Ruby Marshal 4.8 — lector estructural para Essentials v21.1 ───────────
+  // Essentials v19+ guarda un único Hash Marshal. En v21.1, las claves útiles
+  // son :player (Player, con @party) y :storage_system (PokemonStorage).
+  class RubyMarshalReader {
+    constructor(bytes) {
+      this.d = bytes;
+      this.p = 0;
+      this.symbols = [];
+      this.objects = [];
+      this.decoder = new TextDecoder('utf-8');
+    }
 
-    // 1. Nombre del entrenador
-    const trainerName = findTrainerName(raw);
+    read() {
+      if (this.d.length < 2 || this.d[0] !== 0x04 || this.d[1] !== 0x08) {
+        throw new Error('No es un archivo Ruby Marshal 4.8 válido');
+      }
+      this.p = 2;
+      return this.value();
+    }
 
-    // 2. Tabla de símbolos y fieldIdx
-    const symTable = buildSymTable(raw);
-    const fi = buildFieldIdx(symTable);
+    byte() {
+      if (this.p >= this.d.length) throw new Error('Fin inesperado del archivo');
+      return this.d[this.p++];
+    }
 
-    // 3. Buscar @party y leer el conteo del equipo
-    const partyPos = findBytes(raw, enc('@party'));
-    if (partyPos === -1) throw new Error('No se encontró @party');
-    const partyCountByte = raw[partyPos + 7];
-    const partyCount = Math.max(1, Math.min(
-      partyCountByte >= 6 ? partyCountByte - 5 : partyCountByte, 6
-    ));
-
-    // 4. Detectar la clase del Pokémon después de @party
-    //    Buscar 'o:' + lenByte + nombre que contenga 'pokemon' o 'poke' (case-insensitive)
-    let clsStart = -1, clsPattern = null, clsName = '';
-    const searchEnd = Math.min(raw.length - 15, partyPos + 10000);
-    for (let i = partyPos; i < searchEnd; i++) {
-      if (raw[i] === 0x6F && raw[i+1] === 0x3A) {
-        const lb = raw[i+2]; const nl = lb>=6?lb-5:lb;
-        if (nl >= 4 && nl <= 30) {
-          const cls = decodeBytes(raw, i+3, nl);
-          if (cls.toLowerCase().includes('pokemon') || cls.toLowerCase().startsWith('poke')) {
-            clsStart = i;
-            clsPattern = raw.slice(i, i + 3 + nl); // 'o:' + lenByte + nombre
-            clsName = cls;
-            break;
-          }
+    fixnum() {
+      const c = this.byte();
+      if (c === 0) return 0;
+      if (c >= 6 && c <= 127) return c - 5;
+      if (c >= 128 && c <= 250) return c - 256 + 5;
+      if (c >= 1 && c <= 4) {
+        let n = 0;
+        for (let i = 0; i < c; i++) n |= this.byte() << (8 * i);
+        return n;
+      }
+      if (c >= 252 && c <= 255) {
+        const len = 256 - c;
+        let n = -1;
+        for (let i = 0; i < len; i++) {
+          n &= ~(0xFF << (8 * i));
+          n |= this.byte() << (8 * i);
         }
+        return n;
+      }
+      throw new Error('Fixnum Marshal inválido');
+    }
+
+    rawString() {
+      const len = this.fixnum();
+      if (len < 0 || this.p + len > this.d.length) throw new Error('Longitud de cadena inválida');
+      const bytes = this.d.slice(this.p, this.p + len);
+      this.p += len;
+      return this.decoder.decode(bytes);
+    }
+
+    symbol(tagAlreadyRead = false) {
+      const tag = tagAlreadyRead ? 0x3A : this.byte();
+      if (tag === 0x3A) {
+        const name = this.rawString();
+        this.symbols.push(name);
+        return name;
+      }
+      if (tag === 0x3B) {
+        const idx = this.fixnum();
+        if (idx < 0 || idx >= this.symbols.length) throw new Error('Enlace de símbolo inválido');
+        return this.symbols[idx];
+      }
+      throw new Error('Se esperaba un símbolo Ruby');
+    }
+
+    register(obj) {
+      this.objects.push(obj);
+      return obj;
+    }
+
+    value() {
+      const tag = this.byte();
+      switch (tag) {
+        case 0x30: return null;                         // 0 nil
+        case 0x54: return true;                         // T
+        case 0x46: return false;                        // F
+        case 0x69: return this.fixnum();                // i
+        case 0x3A: return { $symbol: this.symbol(true) };// :
+        case 0x3B: {
+          const idx = this.fixnum();
+          if (idx < 0 || idx >= this.symbols.length) throw new Error('Enlace de símbolo inválido');
+          return { $symbol: this.symbols[idx] };
+        }
+        case 0x40: {                                   // @ object link
+          const idx = this.fixnum();
+          if (idx < 0 || idx >= this.objects.length) throw new Error('Enlace de objeto inválido');
+          return this.objects[idx];
+        }
+        case 0x22: {                                   // " string
+          const holder = this.register({ $string: '' });
+          holder.$string = this.rawString();
+          return holder;
+        }
+        case 0x49: {                                   // I instance-variable wrapper
+          const inner = this.value();
+          const count = this.fixnum();
+          const ivars = {};
+          for (let i = 0; i < count; i++) ivars[this.symbolName(this.value())] = this.value();
+          if (inner && typeof inner === 'object') inner.$encoding = ivars;
+          return inner;
+        }
+        case 0x5B: {                                   // [ array
+          const arr = this.register([]);
+          const count = this.fixnum();
+          if (count < 0 || count > 1000000) throw new Error('Array Marshal inválido');
+          for (let i = 0; i < count; i++) arr.push(this.value());
+          return arr;
+        }
+        case 0x7B:                                     // { hash
+        case 0x7D: {                                   // } hash with default
+          const h = this.register({ $hash: new Map() });
+          const count = this.fixnum();
+          if (count < 0 || count > 1000000) throw new Error('Hash Marshal inválido');
+          for (let i = 0; i < count; i++) {
+            const k = this.value();
+            const v = this.value();
+            h.$hash.set(this.keyString(k), v);
+          }
+          if (tag === 0x7D) h.$default = this.value();
+          return h;
+        }
+        case 0x6F: {                                   // o object
+          const className = this.symbolName(this.value());
+          const obj = this.register({ $class: className, $ivars: {} });
+          const count = this.fixnum();
+          if (count < 0 || count > 100000) throw new Error('Objeto Marshal inválido');
+          for (let i = 0; i < count; i++) {
+            const name = this.symbolName(this.value());
+            obj.$ivars[name] = this.value();
+          }
+          return obj;
+        }
+        case 0x66: {                                   // f float
+          const obj = this.register({ $float: 0 });
+          obj.$float = Number(this.rawString());
+          return obj;
+        }
+        case 0x6C: {                                   // l bignum
+          const sign = String.fromCharCode(this.byte());
+          const words = this.fixnum();
+          let n = 0n;
+          for (let i = 0; i < words; i++) n |= BigInt(this.byte() | (this.byte() << 8)) << BigInt(i * 16);
+          if (sign === '-') n = -n;
+          const obj = this.register({ $bigint: n });
+          return obj;
+        }
+        case 0x63:                                     // c class
+        case 0x6D:                                     // m module
+        case 0x4D: {                                   // M old module
+          const obj = this.register({ $classref: this.rawString() });
+          return obj;
+        }
+        case 0x65: {                                   // e extended object
+          const moduleName = this.symbolName(this.value());
+          const inner = this.value();
+          if (inner && typeof inner === 'object') (inner.$extended ||= []).push(moduleName);
+          return inner;
+        }
+        case 0x43: {                                   // C user class wrapper
+          const className = this.symbolName(this.value());
+          const inner = this.value();
+          if (inner && typeof inner === 'object') inner.$userClass = className;
+          return inner;
+        }
+        case 0x75: {                                   // u user-defined (_dump)
+          const className = this.symbolName(this.value());
+          const obj = this.register({ $class: className, $dump: '' });
+          obj.$dump = this.rawString();
+          return obj;
+        }
+        case 0x55: {                                   // U user marshal (marshal_dump)
+          const className = this.symbolName(this.value());
+          const obj = this.register({ $class: className, $marshal: null });
+          obj.$marshal = this.value();
+          return obj;
+        }
+        case 0x2F: {                                   // / regexp
+          const obj = this.register({ $regexp: this.rawString(), $options: this.byte() });
+          return obj;
+        }
+        default:
+          throw new Error(`Tipo Ruby Marshal no soportado: 0x${tag.toString(16)}`);
       }
     }
-    if (clsStart === -1) throw new Error('No se encontró ningún objeto Pokémon');
 
-    // 5. Patrón de symlink para instancias 2-N de la clase
-    const clsSymIdx = symTable.indexOf(clsName);
-    const linkPattern = clsSymIdx >= 0 && (clsSymIdx + 5) <= 0xFB
-      ? new Uint8Array([0x6F, 0x3B, clsSymIdx + 5])
-      : null;
-
-    // 6. Zona del equipo: 12000 bytes por Pokémon máximo
-    const zoneSize = 12000 * partyCount;
-    const zone = raw.slice(clsStart, clsStart + zoneSize);
-
-    // 7. Buscar todas las posiciones de objetos Pokémon en la zona
-    const pokePos = [];
-    let si = 0;
-    while (true) {
-      const p = findBytes(zone, clsPattern, si);
-      if (p === -1) break;
-      pokePos.push(p); si = p + 1;
+    symbolName(v) {
+      if (v && typeof v === 'object' && typeof v.$symbol === 'string') return v.$symbol;
+      throw new Error('Símbolo Marshal inválido');
     }
-    if (linkPattern) {
-      si = 0;
-      while (true) {
-        const p = findBytes(zone, linkPattern, si);
-        if (p === -1) break;
-        if (!pokePos.some(x => Math.abs(x - p) < 5)) pokePos.push(p);
-        si = p + 1;
+
+    keyString(v) {
+      if (v && typeof v === 'object' && typeof v.$symbol === 'string') return ':' + v.$symbol;
+      if (v && typeof v === 'object' && typeof v.$string === 'string') return '"' + v.$string;
+      if (typeof v === 'number') return '#' + v;
+      return '@' + String(v);
+    }
+  }
+
+  function rubyString(v) {
+    if (typeof v === 'string') return v;
+    return v && typeof v.$string === 'string' ? v.$string : null;
+  }
+  function rubySymbol(v) {
+    return v && typeof v.$symbol === 'string' ? v.$symbol : null;
+  }
+  function rubyHashGet(h, key) {
+    return h && h.$hash instanceof Map ? h.$hash.get(':' + key) : undefined;
+  }
+  function rubyIvar(obj, name) {
+    if (!obj || typeof obj !== 'object' || !obj.$ivars) return undefined;
+    return obj.$ivars[name.startsWith('@') ? name : '@' + name];
+  }
+  function rubyNumber(v) {
+    if (typeof v === 'number' && Number.isFinite(v)) return v;
+    if (v && typeof v.$bigint === 'bigint') return Number(v.$bigint);
+    return null;
+  }
+
+  function marshalMoveToUI(move) {
+    if (!move || typeof move !== 'object' || !/(^|::)Move$/.test(move.$class || '')) return null;
+    const id = rubySymbol(rubyIvar(move, '@id'));
+    if (!id || !/^[A-Z0-9_]{2,60}$/.test(id)) return null;
+    const pp = rubyNumber(rubyIvar(move, '@pp'));
+    const ppup = rubyNumber(rubyIvar(move, '@ppup'));
+    return {
+      name: id,
+      pp: pp !== null && pp >= 0 && pp <= 99 ? pp : '?',
+      ppup: ppup !== null && ppup >= 0 && ppup <= 3 ? ppup : 0
+    };
+  }
+
+  function marshalPokemonToUI(pk) {
+    if (!pk || typeof pk !== 'object' || !/(^|::)Pokemon$/.test(pk.$class || '')) return null;
+    const species = rubySymbol(rubyIvar(pk, '@species'));
+    if (!species || !/^[A-Z0-9_]{2,60}$/.test(species)) return null;
+
+    const levelRaw = rubyNumber(rubyIvar(pk, '@level'));
+    const exp = rubyNumber(rubyIvar(pk, '@exp'));
+    // @level existe normalmente en el save. Si está nil no se inventa: se deja sin nivel.
+    const level = levelRaw !== null && levelRaw >= 1 && levelRaw <= 100 ? levelRaw : null;
+    const nickname = rubyString(rubyIvar(pk, '@name'));
+    const formRaw = rubyNumber(rubyIvar(pk, '@form'));
+    const form = formRaw !== null && formRaw >= 0 && formRaw <= 50 ? formRaw : 0;
+    const movesRaw = rubyIvar(pk, '@moves');
+    const moves = Array.isArray(movesRaw) ? movesRaw.map(marshalMoveToUI).filter(Boolean).slice(0, 4) : [];
+
+    const genderN = rubyNumber(rubyIvar(pk, '@gender'));
+    const shinyRaw = rubyIvar(pk, '@shiny');
+    const nature = rubySymbol(rubyIvar(pk, '@nature'));
+    const ability = rubySymbol(rubyIvar(pk, '@ability'));
+    const item = rubySymbol(rubyIvar(pk, '@item'));
+    const pokeball = rubySymbol(rubyIvar(pk, '@poke_ball'));
+
+    const statHash = (value) => {
+      const out = {};
+      if (!value || !(value.$hash instanceof Map)) return out;
+      const labels = { HP:'HP', ATTACK:'Attack', DEFENSE:'Defense', SPECIAL_ATTACK:'Sp.Atk', SPECIAL_DEFENSE:'Sp.Def', SPEED:'Speed' };
+      for (const [k, v] of value.$hash.entries()) {
+        const key = k.startsWith(':') ? k.slice(1) : k;
+        const n = rubyNumber(v);
+        if (labels[key] && n !== null) out[labels[key]] = n;
+      }
+      return out;
+    };
+
+    const niceSpecies = (typeof POKEMON_NAMES !== 'undefined' && POKEMON_NAMES[species]) ||
+      species.toLowerCase().replace(/(^|_)([a-z])/g, (_, a, b) => (a ? ' ' : '') + b.toUpperCase());
+    return {
+      id: speciesNameToId(species) || 0,
+      nickname: nickname || null,
+      name: nickname || niceSpecies,
+      species,
+      form,
+      regionalForm: regionalFormInfo(species, form)?.region || null,
+      level,
+      exp,
+      shiny: shinyRaw === true,
+      gender: genderN === 0 ? 'Macho' : genderN === 1 ? 'Hembra' : genderN === 2 ? 'Sin género' : '?',
+      nature,
+      ability,
+      item: item && item !== 'NONE' ? item : null,
+      pokeball,
+      happiness: rubyNumber(rubyIvar(pk, '@happiness')),
+      hp: rubyNumber(rubyIvar(pk, '@hp')),
+      total_hp: rubyNumber(rubyIvar(pk, '@totalhp')),
+      attack: rubyNumber(rubyIvar(pk, '@attack')),
+      defense: rubyNumber(rubyIvar(pk, '@defense')),
+      spatk: rubyNumber(rubyIvar(pk, '@spatk')),
+      spdef: rubyNumber(rubyIvar(pk, '@spdef')),
+      speed: rubyNumber(rubyIvar(pk, '@speed')),
+      ivs: statHash(rubyIvar(pk, '@iv')),
+      evs: statHash(rubyIvar(pk, '@ev')),
+      moves
+    };
+  }
+
+  function parseSaveFile(raw) {
+    const root = new RubyMarshalReader(raw).read();
+    if (!root || !(root.$hash instanceof Map)) {
+      throw new Error('El save no tiene el formato Hash de Pokémon Essentials 19–21');
+    }
+
+    const player = rubyHashGet(root, 'player');
+    if (!player || !/(^|::)Player$/.test(player.$class || '')) {
+      throw new Error('No se encontró el objeto :player de Essentials v21.1');
+    }
+
+    const trainerName = rubyString(rubyIvar(player, '@name')) || 'Desconocido';
+    const party = rubyIvar(player, '@party');
+    if (!Array.isArray(party)) throw new Error('El jugador no contiene un @party válido');
+    const team = party.map(marshalPokemonToUI).filter(Boolean).slice(0, 6);
+
+    const storage = rubyHashGet(root, 'storage_system');
+    const pcBoxes = [];
+    if (storage && typeof storage === 'object') {
+      const boxes = rubyIvar(storage, '@boxes');
+      if (Array.isArray(boxes)) {
+        boxes.forEach((box, index) => {
+          if (!box || typeof box !== 'object') return;
+          const pokemons = rubyIvar(box, '@pokemon');
+          const parsed = Array.isArray(pokemons) ? pokemons.map(marshalPokemonToUI).filter(Boolean) : [];
+          const boxName = rubyString(rubyIvar(box, '@name')) || `Caja ${index + 1}`;
+          pcBoxes.push({ name: boxName, num: index + 1, pokemon: parsed });
+        });
       }
     }
-    pokePos.sort((a, b) => a - b);
-
-    // 8. Parsear cada segmento
-    const segs = pokePos.slice(0, partyCount);
-    const nextAfter = pokePos[partyCount] ?? zone.length;
-
-    const team = [];
-    for (let i = 0; i < segs.length; i++) {
-      const segStart = segs[i];
-      const segEnd = i + 1 < segs.length ? segs[i + 1] : nextAfter;
-      const seg = zone.slice(segStart, segEnd);
-      const pk = parsePokemon(seg, symTable, fi);
-      if (pk && pk.species) team.push(pk);
-    }
-
-    // Fallback: parsear toda la zona si no se detectó nada
-    if (team.length === 0) {
-      const pk = parsePokemon(zone.slice(0, 12000), symTable, fi);
-      if (pk && pk.species) team.push(pk);
-    }
-
-    // 9. Convertir al formato de la UI
-    function pkToUI(p) {
-      const id = speciesNameToId(p.species) || 0;
-      const niceCap = s => s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s;
-      return {
-        id,
-        nickname:  p.nickname || null,
-        name:      p.nickname || niceCap(p.species),
-        species:   p.species,
-        level:     p.level ?? 1,
-        shiny:     p.shiny ?? false,
-        gender:    p.gender,
-        nature:    p.nature,
-        ability:   p.ability,
-        item:      p.item,
-        pokeball:  p.pokeball,
-        happiness: p.happiness,
-        hp:        p.hp,       total_hp: p.total_hp,
-        attack:    p.attack,   defense:  p.defense,
-        spatk:     p.spatk,    spdef:    p.spdef,   speed: p.speed,
-        ivs:       p.ivs,      evs:      p.evs,     moves: p.moves,
-      };
-    }
-
-    // Parse PC boxes
-    const pcBoxes = parsePC(raw, symTable, fi);
 
     return {
-      name:    trainerName,
-      team:    team.map(pkToUI),
-      box:     pcBoxes.flatMap(b => b.pokemon),  // flat list for compatibility
-      pcBoxes: pcBoxes,                           // structured by box
-      badges:  0
+      name: trainerName,
+      team,
+      box: pcBoxes.flatMap(b => b.pokemon),
+      pcBoxes,
+      badges: 0,
+      parser: 'Pokémon Essentials v21.1 (Ruby Marshal estructural)'
     };
   }
 
@@ -3734,6 +5057,77 @@
     reader.readAsArrayBuffer(file);
   }
 
+  // ── Insertar partida directamente en un participante concreto ───────────────
+  let pendingInsertTargetIndex = null;
+
+  function adminTriggerInsertSave(participantIndex) {
+    pendingInsertTargetIndex = participantIndex;
+    const input = document.getElementById('admin-insert-save-file');
+    if (input) {
+      input.value = '';
+      input.click();
+    }
+  }
+
+  function adminHandleInsertSaveFile(file) {
+    if (!file) return;
+    if (pendingInsertTargetIndex === null) return;
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['rxdata','dat','bin','rxd'].includes(ext)) {
+      showAdminMsg('admin-part-msg', 'Sube un archivo .rxdata válido.', 'err');
+      pendingInsertTargetIndex = null;
+      return;
+    }
+
+    const parts = getAdminParticipants() || [];
+    const target = parts[pendingInsertTargetIndex];
+    if (!target) {
+      showAdminMsg('admin-part-msg', 'El participante ya no existe.', 'err');
+      pendingInsertTargetIndex = null;
+      return;
+    }
+
+    showAdminMsg('admin-part-msg', `Leyendo save para ${target.name}…`, 'ok');
+    const reader = new FileReader();
+    reader.onload = async e => {
+      try {
+        const raw = new Uint8Array(e.target.result);
+        const d = parseSaveFile(raw);
+
+        // Fusionar los datos del save en el participante elegido, conservando
+        // su nombre, emoji, estado y demás marcas de admin.
+        target.badges  = d.badges;
+        target.team    = d.team;
+        target.box     = d.box || [];
+        target.pcBoxes = d.pcBoxes || [];
+        target.pokemon = d.team[0]?.id || target.pokemon || 1;
+
+        const dbId = await saveParticipantToDB(target);
+        if (dbId) {
+          target._dbId = dbId;
+          showAdminMsg('admin-part-msg', `✅ Partida insertada en ${target.name} y guardada en base de datos.`, 'ok');
+        } else {
+          showAdminMsg('admin-part-msg', `✅ Partida insertada en ${target.name} (solo localStorage).`, 'ok');
+        }
+
+        parts[pendingInsertTargetIndex] = target;
+        saveAdminParticipants(parts);
+        renderAdminParticipants();
+      } catch (ex) {
+        console.error('[SAVE ERROR]', ex);
+        showAdminMsg('admin-part-msg', 'Error: ' + ex.message, 'err');
+      } finally {
+        pendingInsertTargetIndex = null;
+      }
+    };
+    reader.onerror = () => {
+      showAdminMsg('admin-part-msg', 'Error al leer el archivo.', 'err');
+      pendingInsertTargetIndex = null;
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+
   function adminAddParticipant() { adminConfirmSaveParticipant(); }
 
   // ── showSavePreview ──────────────────────────────────────────────────────────
@@ -3741,6 +5135,21 @@
     document.getElementById('admin-save-player-name').textContent = data.name;
     const bBadges = document.getElementById('admin-save-badges');
     bBadges.innerHTML = `<span class="admin-save-badge">⚔️ ${data.team.length}/6 en equipo</span>`;
+
+    // Poblar el selector de participante destino: cuentas fijas + participantes
+    // extra ya existentes, más la opción de crear uno nuevo con el nombre del save.
+    if (typeof ensureAccountParticipants === 'function') ensureAccountParticipants();
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const targetSelect = document.getElementById('admin-save-target-participant');
+    if (targetSelect) {
+      const matchIdx = parts.findIndex(p => p && (p.name || '').trim().toLowerCase() === (data.name || '').trim().toLowerCase());
+      const optionsHtml = parts.map((p, idx) =>
+        `<option value="${idx}"${idx === matchIdx ? ' selected' : ''}>${p.emoji || '💀'} ${p.name}</option>`
+      ).join('');
+      const newOptionSelected = matchIdx === -1 ? ' selected' : '';
+      targetSelect.innerHTML = optionsHtml +
+        `<option value="__new__"${newOptionSelected}>➕ Crear nuevo participante ("${data.name}")</option>`;
+    }
 
     const teamEl = document.getElementById('admin-save-team');
     if (data.team.length === 0) {
@@ -3750,10 +5159,10 @@
         const id = p.id || speciesNameToId(p.species || '') || 0;
         return `<div class="admin-save-poke${p.shiny ? ' shiny' : ''}">
           ${id
-            ? `<img src="${pokeApi(id, p.shiny)}" alt="${p.name}">`
+            ? `<img src="${pokemonSprite(p, p.shiny)}" alt="${p.name}">`
             : `<span style="font-size:1.2rem;">❓</span>`
           }
-          <span class="admin-save-poke-name">${p.name || p.species}</span>
+          <span class="admin-save-poke-name">${p.nickname || pokemonDisplaySpecies(p)}</span>
           <span class="admin-save-poke-lv">Nv.${p.level ?? '?'}</span>
         </div>`;
       }).join('');
@@ -3762,6 +5171,9 @@
   }
 
   // ── adminConfirmSaveParticipant ──────────────────────────────────────────────
+  // Inserta el save leído en el participante elegido en el selector (fusiona su
+  // equipo/PC/caja conservando nombre, emoji, estado y marcas de admin), o crea
+  // uno nuevo si se elige esa opción.
   async function adminConfirmSaveParticipant() {
     if (!pendingSaveData) {
       showAdminMsg('admin-part-msg', 'No hay save cargado.', 'err');
@@ -3769,6 +5181,45 @@
     }
     const d = pendingSaveData;
     const parts = getAdminParticipants() || [];
+    const targetSelect = document.getElementById('admin-save-target-participant');
+    const targetValue = targetSelect ? targetSelect.value : '__new__';
+
+    if (targetValue !== '__new__') {
+      const idx = parseInt(targetValue, 10);
+      const target = parts[idx];
+      if (!target) {
+        showAdminMsg('admin-part-msg', 'El participante elegido ya no existe.', 'err');
+        return;
+      }
+
+      // Fusionar los datos del save en el participante elegido, conservando
+      // su nombre, emoji, estado y demás marcas (robado/blindado/etc. de sus
+      // pokémon existentes se pierden solo si el pokémon ya no está en el save).
+      target.badges  = d.badges;
+      target.team    = d.team;
+      target.box     = d.box || [];
+      target.pcBoxes = d.pcBoxes || [];
+      target.pokemon = d.team[0]?.id || target.pokemon || 1;
+
+      const dbId = await saveParticipantToDB(target);
+      if (dbId) {
+        target._dbId = dbId;
+        showAdminMsg('admin-part-msg', `✅ Partida insertada en ${target.name} y guardada en base de datos.`, 'ok');
+      } else {
+        showAdminMsg('admin-part-msg', `✅ Partida insertada en ${target.name} (solo localStorage).`, 'ok');
+      }
+
+      parts[idx] = target;
+      saveAdminParticipants(parts);
+      renderAdminParticipants();
+
+      pendingSaveData = null;
+      document.getElementById('admin-save-preview').style.display = 'none';
+      const dz = document.getElementById('admin-save-drop');
+      if (dz) dz.style.display = 'flex';
+      document.getElementById('admin-save-file').value = '';
+      return;
+    }
 
     if (parts.find(p => p.name.toLowerCase() === d.name.toLowerCase())) {
       showAdminMsg('admin-part-msg', 'Ya existe un participante con ese nombre.', 'err');
@@ -3813,6 +5264,32 @@
     parts.splice(i, 1);
     saveAdminParticipants(parts);
     renderAdminParticipants();
+  }
+
+  // Borra los datos de partida de un participante (muertes, save, equipo, PC,
+  // caja, medallas, marcas de robado/blindado…) SIN eliminar la cuenta/fila:
+  // conserva nombre, emoji y estado tal cual quedan tras el borrado.
+  async function adminResetParticipantData(i) {
+    const parts = getAdminParticipants() || [];
+    const part = parts[i];
+    if (!part) return;
+
+    if (!confirm(`¿Borrar TODOS los datos de partida de ${part.name} (muertes, save, equipo, PC, caja)? La cuenta y el nombre no se eliminan.`)) return;
+
+    part.team = [];
+    part.pcBoxes = [];
+    part.box = [];
+    part.badges = [];
+    part.deathCount = 0;
+    part.pokemon = 1;
+
+    saveAdminParticipants(parts);
+    if (typeof saveParticipantToDB === 'function') {
+      try { await saveParticipantToDB(part); } catch (error) { console.warn(error); }
+    }
+    renderAdminParticipants();
+    renderParticipantsList();
+    showAdminMsg('admin-part-msg', `✅ Datos de ${part.name} borrados. La cuenta sigue existiendo.`, 'ok');
   }
 
   function adminToggleStatus(i) {
@@ -4170,8 +5647,10 @@ mpHighlight(0);
       nickname:  pk.mote || null,
       name:      pk.mote || (POKEMON_NAMES && POKEMON_NAMES[pk.especie]) || pk.especie,
       species:   pk.especie,
+      form:      Number(pk.forma ?? pk.form ?? 0) || 0,
       level:     pk.nivel,
       shiny:     !!pk.shiny,
+      dead:      !!(pk.dead ?? pk.muerto),
       gender:    pk.genero || '?',
       nature:    pk.naturaleza,
       ability:   pk.habilidad,
@@ -4226,6 +5705,8 @@ mpHighlight(0);
       estado: uiParticipant.status || 'activo',
       num:    uiParticipant.num,
       team:   uiParticipant.team || [],
+      box:    uiParticipant.box || [],
+      pcBoxes: uiParticipant.pcBoxes || [],
     };
     try {
       if (uiParticipant._dbId) {
@@ -4268,6 +5749,1085 @@ mpHighlight(0);
         renderParticipants();
       }
     });
+  });
+
+
+  // ── CARTA ROBAS UN POKÉMON ────────────────────────────────────────────────
+  function currentSessionUser() {
+    try {
+      return JSON.parse(sessionStorage.getItem('ds3-session') || 'null')?.user || '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  // Excluye la partida del usuario que ha iniciado sesión de las listas de
+  // partidas seleccionables en las cartas (no puedes usarlas contra ti mismo).
+  function isOwnParticipant(participant) {
+    if (!participant) return false;
+    const user = currentSessionUser();
+    if (!user) return false;
+    return (participant.name || '').trim().toLowerCase() === user.trim().toLowerCase();
+  }
+
+  function updateCollectionPermissions() {
+    const clearBtn = document.getElementById('collection-clear-btn');
+    if (clearBtn) clearBtn.style.display = isAdmin ? 'inline-block' : 'none';
+  }
+
+  function consumeCollectionCard(cardName) {
+    const col = loadCollection();
+    if (!col[cardName] || Number(col[cardName].count || 0) < 1) return false;
+    col[cardName].count--;
+    if (col[cardName].count <= 0) delete col[cardName];
+    saveCollection(col);
+    return true;
+  }
+
+  function allStealablePokemon(participant) {
+    const result = [];
+    (participant.team || []).forEach((pk, pokemonIndex) => {
+      if (pk && !pk.stolen && !pk.blindado) result.push({ pk, location: 'team', boxIndex: -1, pokemonIndex });
+    });
+    (participant.pcBoxes || []).forEach((box, boxIndex) => {
+      (box?.pokemon || []).forEach((pk, pokemonIndex) => {
+        if (pk && !pk.stolen && !pk.blindado) result.push({ pk, location: 'pc', boxIndex, pokemonIndex });
+      });
+    });
+    (participant.box || []).forEach((pk, pokemonIndex) => {
+      if (pk && !pk.stolen && !pk.blindado) result.push({ pk, location: 'box', boxIndex: -1, pokemonIndex });
+    });
+    return result;
+  }
+
+  function useStealPokemonCard() {
+    const user = currentSessionUser();
+    if (!user) {
+      closeModal('modal-collection');
+      openModal('modal-auth');
+      return;
+    }
+    const col = loadCollection();
+    if (!col['Robas un Pokémon'] || col['Robas un Pokémon'].count < 1) {
+      alert('No tienes ninguna carta "Robas un Pokémon".');
+      return;
+    }
+
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const available = parts
+      .map((participant, index) => ({ participant, index, pokemon: allStealablePokemon(participant) }))
+      .filter(entry => entry.pokemon.length > 0 && !isOwnParticipant(entry.participant));
+
+    if (!available.length) {
+      alert('No hay partidas con Pokémon disponibles para robar.');
+      return;
+    }
+
+    closeModal('modal-collection');
+    document.getElementById('steal-modal-title').textContent = '💰 Elige una partida';
+    document.getElementById('steal-help').textContent = 'Después podrás elegir uno de sus Pokémon. Los que ya están robados no pueden seleccionarse otra vez.';
+    const content = document.getElementById('steal-content');
+    content.innerHTML = '<div class="steal-list"></div>';
+    const list = content.firstElementChild;
+
+    available.forEach(({ participant, index, pokemon }) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'steal-choice';
+      const lead = pokemon[0]?.pk;
+      button.innerHTML = `
+        ${lead ? `<img src="${pokemonSprite(lead, !!lead.shiny)}" alt="">` : ''}
+        <span class="steal-choice-name">${participant.name || 'Partida sin nombre'}</span>
+        <span class="steal-choice-sub">${pokemon.length} Pokémon disponible${pokemon.length === 1 ? '' : 's'}</span>
+      `;
+      button.addEventListener('click', () => renderPokemonStealChoices(index));
+      list.appendChild(button);
+    });
+
+    openModal('modal-steal-pokemon');
+  }
+
+  function renderPokemonStealChoices(participantIndex) {
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const participant = parts[participantIndex];
+    if (!participant) return;
+    const choices = allStealablePokemon(participant);
+
+    document.getElementById('steal-modal-title').textContent = `💰 Robar a ${participant.name || 'esta partida'}`;
+    document.getElementById('steal-help').innerHTML =
+      '<button class="profile-back" type="button" onclick="useStealPokemonCard()">◀ Cambiar partida</button><br>Elige el Pokémon. La carta se consumirá al confirmar.';
+    const content = document.getElementById('steal-content');
+
+    if (!choices.length) {
+      content.innerHTML = '<div class="collection-empty"><span>📭</span>No quedan Pokémon disponibles.</div>';
+      return;
+    }
+
+    content.innerHTML = '<div class="steal-list"></div>';
+    const list = content.firstElementChild;
+    choices.forEach(({ pk, location, boxIndex, pokemonIndex }) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'steal-choice';
+      const name = pk.nickname || pokemonDisplaySpecies(pk) || pk.species || 'Pokémon';
+      button.innerHTML = `
+        <img src="${pokemonSprite(pk, !!pk.shiny)}" alt="${name}">
+        <span class="steal-choice-name">${name}</span>
+        <span class="steal-choice-sub">Nv. ${pk.level ?? '?'} · ${location === 'team' ? 'Equipo' : 'PC'}</span>
+      `;
+      button.addEventListener('click', () =>
+        confirmStealPokemon(participantIndex, location, boxIndex, pokemonIndex)
+      );
+      list.appendChild(button);
+    });
+  }
+
+  async function confirmStealPokemon(participantIndex, location, boxIndex, pokemonIndex) {
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const participant = parts[participantIndex];
+    if (!participant) return;
+
+    let pk = null;
+    if (location === 'team') pk = participant.team?.[pokemonIndex];
+    else if (location === 'pc') pk = participant.pcBoxes?.[boxIndex]?.pokemon?.[pokemonIndex];
+    else pk = participant.box?.[pokemonIndex];
+
+    if (!pk || pk.stolen) {
+      alert('Ese Pokémon ya no está disponible.');
+      renderPokemonStealChoices(participantIndex);
+      return;
+    }
+
+    if (pk.blindado) {
+      alert('Ese Pokémon está BLINDADO y no puede ser robado.');
+      renderPokemonStealChoices(participantIndex);
+      return;
+    }
+
+    const name = pk.nickname || pokemonDisplaySpecies(pk) || pk.species || 'Pokémon';
+    const thief = currentSessionUser();
+    if (!confirm(`¿Usar la carta para robar a ${name} de la partida de ${participant.name}?`)) return;
+
+    if (!consumeCollectionCard('Robas un Pokémon')) {
+      alert('La carta ya no está disponible.');
+      closeModal('modal-steal-pokemon');
+      return;
+    }
+
+    pk.stolen = true;
+    pk.stolenBy = thief;
+    pk.stolenAt = new Date().toISOString();
+
+    saveAdminParticipants(parts);
+    if (typeof saveParticipantToDB === 'function') {
+      try { await saveParticipantToDB(participant); } catch (error) { console.warn(error); }
+    }
+
+    const stolenKey = `ds3-stolen-pokemon-${thief}`;
+    let stolen = [];
+    try { stolen = JSON.parse(localStorage.getItem(stolenKey) || '[]'); } catch (_) {}
+    stolen.push({
+      pokemon: JSON.parse(JSON.stringify(pk)),
+      fromParticipant: participant.name || '',
+      stolenAt: pk.stolenAt
+    });
+    localStorage.setItem(stolenKey, JSON.stringify(stolen));
+
+    renderParticipantsList();
+    updateCardBadge(loadCollection());
+    closeModal('modal-steal-pokemon');
+    alert(`${name} ha sido marcado como ROBADO en la partida de ${participant.name}.`);
+  }
+
+  // ── USO DE CARTA: PROFANATUMBAS (robar un Pokémon marcado como muerto) ──
+  function allDeadPokemon(participant) {
+    const result = [];
+    (participant.team || []).forEach((pk, pokemonIndex) => {
+      if (pk && pk.dead && !pk.stolen && !pk.blindado) result.push({ pk, location: 'team', boxIndex: -1, pokemonIndex });
+    });
+    (participant.pcBoxes || []).forEach((box, boxIndex) => {
+      (box?.pokemon || []).forEach((pk, pokemonIndex) => {
+        if (pk && pk.dead && !pk.stolen && !pk.blindado) result.push({ pk, location: 'pc', boxIndex, pokemonIndex });
+      });
+    });
+    (participant.box || []).forEach((pk, pokemonIndex) => {
+      if (pk && pk.dead && !pk.stolen && !pk.blindado) result.push({ pk, location: 'box', boxIndex: -1, pokemonIndex });
+    });
+    return result;
+  }
+
+  function useProfanatumbasCard() {
+    const user = currentSessionUser();
+    if (!user) {
+      closeModal('modal-collection');
+      openModal('modal-auth');
+      return;
+    }
+    const col = loadCollection();
+    if (!col['Profanatumbas'] || col['Profanatumbas'].count < 1) {
+      alert('No tienes ninguna carta "Profanatumbas".');
+      return;
+    }
+
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const available = parts
+      .map((participant, index) => ({ participant, index, pokemon: allDeadPokemon(participant) }))
+      .filter(entry => entry.pokemon.length > 0 && !isOwnParticipant(entry.participant));
+
+    if (!available.length) {
+      alert('No hay partidas con Pokémon muertos disponibles para robar.');
+      return;
+    }
+
+    closeModal('modal-collection');
+    document.getElementById('steal-modal-title').textContent = '🎗 Elige una partida';
+    document.getElementById('steal-help').textContent = 'Después podrás elegir uno de sus Pokémon marcados como muertos. Los que ya están robados no pueden seleccionarse otra vez.';
+    const content = document.getElementById('steal-content');
+    content.innerHTML = '<div class="steal-list"></div>';
+    const list = content.firstElementChild;
+
+    available.forEach(({ participant, index, pokemon }) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'steal-choice';
+      const lead = pokemon[0]?.pk;
+      button.innerHTML = `
+        ${lead ? `<img src="${pokemonSprite(lead, !!lead.shiny)}" alt="">` : ''}
+        <span class="steal-choice-name">${participant.name || 'Partida sin nombre'}</span>
+        <span class="steal-choice-sub">💀 ${pokemon.length} Pokémon muerto${pokemon.length === 1 ? '' : 's'}</span>
+      `;
+      button.addEventListener('click', () => renderProfanatumbasChoices(index));
+      list.appendChild(button);
+    });
+
+    openModal('modal-steal-pokemon');
+  }
+
+  function renderProfanatumbasChoices(participantIndex) {
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const participant = parts[participantIndex];
+    if (!participant) return;
+    const choices = allDeadPokemon(participant);
+
+    document.getElementById('steal-modal-title').textContent = `🎗 Profanar la tumba de ${participant.name || 'esta partida'}`;
+    document.getElementById('steal-help').innerHTML =
+      '<button class="profile-back" type="button" onclick="useProfanatumbasCard()">◀ Cambiar partida</button><br>Elige el Pokémon muerto. La carta se consumirá al confirmar.';
+    const content = document.getElementById('steal-content');
+
+    if (!choices.length) {
+      content.innerHTML = '<div class="collection-empty"><span>📭</span>No quedan Pokémon muertos disponibles.</div>';
+      return;
+    }
+
+    content.innerHTML = '<div class="steal-list"></div>';
+    const list = content.firstElementChild;
+    choices.forEach(({ pk, location, boxIndex, pokemonIndex }) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'steal-choice';
+      const name = pk.nickname || pokemonDisplaySpecies(pk) || pk.species || 'Pokémon';
+      button.innerHTML = `
+        <img src="${pokemonSprite(pk, !!pk.shiny)}" alt="${name}">
+        <span class="steal-choice-name">💀 ${name}</span>
+        <span class="steal-choice-sub">Nv. ${pk.level ?? '?'} · ${location === 'team' ? 'Equipo' : 'PC'}</span>
+      `;
+      button.addEventListener('click', () =>
+        confirmProfanatumbas(participantIndex, location, boxIndex, pokemonIndex)
+      );
+      list.appendChild(button);
+    });
+  }
+
+  async function confirmProfanatumbas(participantIndex, location, boxIndex, pokemonIndex) {
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const participant = parts[participantIndex];
+    if (!participant) return;
+
+    let pk = null;
+    if (location === 'team') pk = participant.team?.[pokemonIndex];
+    else if (location === 'pc') pk = participant.pcBoxes?.[boxIndex]?.pokemon?.[pokemonIndex];
+    else pk = participant.box?.[pokemonIndex];
+
+    if (!pk || !pk.dead || pk.stolen) {
+      alert('Ese Pokémon ya no está disponible.');
+      renderProfanatumbasChoices(participantIndex);
+      return;
+    }
+
+    if (pk.blindado) {
+      alert('Ese Pokémon está BLINDADO y no puede ser robado.');
+      renderProfanatumbasChoices(participantIndex);
+      return;
+    }
+
+    const name = pk.nickname || pokemonDisplaySpecies(pk) || pk.species || 'Pokémon';
+    const thief = currentSessionUser();
+    if (!confirm(`¿Usar la carta Profanatumbas para robar a ${name} (💀 muerto) de la partida de ${participant.name}?`)) return;
+
+    if (!consumeCollectionCard('Profanatumbas')) {
+      alert('La carta ya no está disponible.');
+      closeModal('modal-steal-pokemon');
+      return;
+    }
+
+    pk.stolen = true;
+    pk.stolenBy = thief;
+    pk.stolenAt = new Date().toISOString();
+
+    saveAdminParticipants(parts);
+    if (typeof saveParticipantToDB === 'function') {
+      try { await saveParticipantToDB(participant); } catch (error) { console.warn(error); }
+    }
+
+    const stolenKey = `ds3-stolen-pokemon-${thief}`;
+    let stolen = [];
+    try { stolen = JSON.parse(localStorage.getItem(stolenKey) || '[]'); } catch (_) {}
+    stolen.push({
+      pokemon: JSON.parse(JSON.stringify(pk)),
+      fromParticipant: participant.name || '',
+      stolenAt: pk.stolenAt
+    });
+    localStorage.setItem(stolenKey, JSON.stringify(stolen));
+
+    renderParticipantsList();
+    updateCardBadge(loadCollection());
+    closeModal('modal-steal-pokemon');
+    alert(`${name} ha sido marcado como ROBADO (desde la tumba) en la partida de ${participant.name}.`);
+  }
+
+  // ── USO DE CARTA: REVIVIR UN POKÉMON (revivir un Pokémon marcado como muerto, si no está robado) ──
+  function allDeadPokemonForRevive(participant) {
+    const result = [];
+    (participant.team || []).forEach((pk, pokemonIndex) => {
+      if (pk && pk.dead && !pk.stolen) result.push({ pk, location: 'team', boxIndex: -1, pokemonIndex });
+    });
+    (participant.pcBoxes || []).forEach((box, boxIndex) => {
+      (box?.pokemon || []).forEach((pk, pokemonIndex) => {
+        if (pk && pk.dead && !pk.stolen) result.push({ pk, location: 'pc', boxIndex, pokemonIndex });
+      });
+    });
+    (participant.box || []).forEach((pk, pokemonIndex) => {
+      if (pk && pk.dead && !pk.stolen) result.push({ pk, location: 'box', boxIndex: -1, pokemonIndex });
+    });
+    return result;
+  }
+
+  function useRevivePokemonCard() {
+    const user = currentSessionUser();
+    if (!user) {
+      closeModal('modal-collection');
+      openModal('modal-auth');
+      return;
+    }
+    const col = loadCollection();
+    if (!col['Revivir un Pokémon'] || col['Revivir un Pokémon'].count < 1) {
+      alert('No tienes ninguna carta "Revivir un Pokémon".');
+      return;
+    }
+
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const available = parts
+      .map((participant, index) => ({ participant, index, pokemon: allDeadPokemonForRevive(participant) }))
+      .filter(entry => entry.pokemon.length > 0 && isOwnParticipant(entry.participant));
+
+    if (!available.length) {
+      alert('No tienes ningún Pokémon muerto disponible para revivir.');
+      return;
+    }
+
+    closeModal('modal-collection');
+    document.getElementById('steal-modal-title').textContent = '😇 Tu partida';
+    document.getElementById('steal-help').textContent = 'Después podrás elegir uno de tus Pokémon marcados como muertos para revivirlo.';
+    const content = document.getElementById('steal-content');
+    content.innerHTML = '<div class="steal-list"></div>';
+    const list = content.firstElementChild;
+
+    available.forEach(({ participant, index, pokemon }) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'steal-choice';
+      const lead = pokemon[0]?.pk;
+      button.innerHTML = `
+        ${lead ? `<img src="${pokemonSprite(lead, !!lead.shiny)}" alt="">` : ''}
+        <span class="steal-choice-name">${participant.name || 'Partida sin nombre'}</span>
+        <span class="steal-choice-sub">💀 ${pokemon.length} Pokémon muerto${pokemon.length === 1 ? '' : 's'}</span>
+      `;
+      button.addEventListener('click', () => renderReviveChoices(index));
+      list.appendChild(button);
+    });
+
+    openModal('modal-steal-pokemon');
+  }
+
+  function renderReviveChoices(participantIndex) {
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const participant = parts[participantIndex];
+    if (!participant) return;
+    const choices = allDeadPokemonForRevive(participant);
+
+    document.getElementById('steal-modal-title').textContent = `😇 Revivir en ${participant.name || 'esta partida'}`;
+    document.getElementById('steal-help').innerHTML =
+      '<button class="profile-back" type="button" onclick="useRevivePokemonCard()">◀ Cambiar partida</button><br>Elige el Pokémon muerto. La carta se consumirá al confirmar.';
+    const content = document.getElementById('steal-content');
+
+    if (!choices.length) {
+      content.innerHTML = '<div class="collection-empty"><span>📭</span>No quedan Pokémon muertos disponibles.</div>';
+      return;
+    }
+
+    content.innerHTML = '<div class="steal-list"></div>';
+    const list = content.firstElementChild;
+    choices.forEach(({ pk, location, boxIndex, pokemonIndex }) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'steal-choice';
+      const name = pk.nickname || pokemonDisplaySpecies(pk) || pk.species || 'Pokémon';
+      button.innerHTML = `
+        <img src="${pokemonSprite(pk, !!pk.shiny)}" alt="${name}">
+        <span class="steal-choice-name">💀 ${name}</span>
+        <span class="steal-choice-sub">Nv. ${pk.level ?? '?'} · ${location === 'team' ? 'Equipo' : 'PC'}</span>
+      `;
+      button.addEventListener('click', () =>
+        confirmRevivePokemon(participantIndex, location, boxIndex, pokemonIndex)
+      );
+      list.appendChild(button);
+    });
+  }
+
+  async function confirmRevivePokemon(participantIndex, location, boxIndex, pokemonIndex) {
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const participant = parts[participantIndex];
+    if (!participant) return;
+
+    let pk = null;
+    if (location === 'team') pk = participant.team?.[pokemonIndex];
+    else if (location === 'pc') pk = participant.pcBoxes?.[boxIndex]?.pokemon?.[pokemonIndex];
+    else pk = participant.box?.[pokemonIndex];
+
+    if (!pk || !pk.dead) {
+      alert('Ese Pokémon ya no está disponible.');
+      renderReviveChoices(participantIndex);
+      return;
+    }
+
+    if (pk.stolen) {
+      alert('Ese Pokémon está marcado como ROBADO y no puede revivirse.');
+      renderReviveChoices(participantIndex);
+      return;
+    }
+
+    const name = pk.nickname || pokemonDisplaySpecies(pk) || pk.species || 'Pokémon';
+    if (!confirm(`¿Usar la carta Revivir un Pokémon para revivir a ${name} en la partida de ${participant.name}?`)) return;
+
+    if (!consumeCollectionCard('Revivir un Pokémon')) {
+      alert('La carta ya no está disponible.');
+      closeModal('modal-steal-pokemon');
+      return;
+    }
+
+    pk.dead = false;
+
+    saveAdminParticipants(parts);
+    if (typeof saveParticipantToDB === 'function') {
+      try { await saveParticipantToDB(participant); } catch (error) { console.warn(error); }
+    }
+
+    renderParticipantsList();
+    updateCardBadge(loadCollection());
+    closeModal('modal-steal-pokemon');
+    alert(`${name} ha sido REVIVIDO en la partida de ${participant.name}.`);
+  }
+
+  // ── USO DE CARTA: BLINDADO (proteger un Pokémon vivo o muerto; los robados no aplican) ──
+  function allShieldablePokemon(participant) {
+    const result = [];
+    (participant.team || []).forEach((pk, pokemonIndex) => {
+      if (pk && !pk.stolen) result.push({ pk, location: 'team', boxIndex: -1, pokemonIndex });
+    });
+    (participant.pcBoxes || []).forEach((box, boxIndex) => {
+      (box?.pokemon || []).forEach((pk, pokemonIndex) => {
+        if (pk && !pk.stolen) result.push({ pk, location: 'pc', boxIndex, pokemonIndex });
+      });
+    });
+    (participant.box || []).forEach((pk, pokemonIndex) => {
+      if (pk && !pk.stolen) result.push({ pk, location: 'box', boxIndex: -1, pokemonIndex });
+    });
+    return result;
+  }
+
+  function useBlindadoCard() {
+    const user = currentSessionUser();
+    if (!user) {
+      closeModal('modal-collection');
+      openModal('modal-auth');
+      return;
+    }
+    const col = loadCollection();
+    if (!col['Blindado'] || col['Blindado'].count < 1) {
+      alert('No tienes ninguna carta "Blindado".');
+      return;
+    }
+
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const available = parts
+      .map((participant, index) => ({ participant, index, pokemon: allShieldablePokemon(participant) }))
+      .filter(entry => entry.pokemon.length > 0 && isOwnParticipant(entry.participant));
+
+    if (!available.length) {
+      alert('No tienes ningún Pokémon disponible para blindar.');
+      return;
+    }
+
+    closeModal('modal-collection');
+    document.getElementById('steal-modal-title').textContent = '🔒 Tu partida';
+    document.getElementById('steal-help').textContent = 'Después podrás elegir el Pokémon a blindar (vivo o muerto). Los Pokémon robados no se pueden blindar.';
+    const content = document.getElementById('steal-content');
+    content.innerHTML = '<div class="steal-list"></div>';
+    const list = content.firstElementChild;
+
+    available.forEach(({ participant, index, pokemon }) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'steal-choice';
+      const lead = pokemon[0]?.pk;
+      button.innerHTML = `
+        ${lead ? `<img src="${pokemonSprite(lead, !!lead.shiny)}" alt="">` : ''}
+        <span class="steal-choice-name">${participant.name || 'Partida sin nombre'}</span>
+        <span class="steal-choice-sub">${pokemon.length} Pokémon disponible${pokemon.length === 1 ? '' : 's'}</span>
+      `;
+      button.addEventListener('click', () => renderBlindadoChoices(index));
+      list.appendChild(button);
+    });
+
+    openModal('modal-steal-pokemon');
+  }
+
+  function renderBlindadoChoices(participantIndex) {
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const participant = parts[participantIndex];
+    if (!participant) return;
+    const choices = allShieldablePokemon(participant);
+
+    document.getElementById('steal-modal-title').textContent = `🔒 Blindar en ${participant.name || 'esta partida'}`;
+    document.getElementById('steal-help').innerHTML =
+      '<button class="profile-back" type="button" onclick="useBlindadoCard()">◀ Cambiar partida</button><br>Elige el Pokémon a blindar (vivo o muerto). La carta se consumirá al confirmar.';
+    const content = document.getElementById('steal-content');
+
+    if (!choices.length) {
+      content.innerHTML = '<div class="collection-empty"><span>📭</span>No quedan Pokémon disponibles.</div>';
+      return;
+    }
+
+    content.innerHTML = '<div class="steal-list"></div>';
+    const list = content.firstElementChild;
+    choices.forEach(({ pk, location, boxIndex, pokemonIndex }) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'steal-choice';
+      const name = pk.nickname || pokemonDisplaySpecies(pk) || pk.species || 'Pokémon';
+      button.innerHTML = `
+        <img src="${pokemonSprite(pk, !!pk.shiny)}" alt="${name}">
+        <span class="steal-choice-name">${pk.dead ? '💀 ' : ''}${pk.blindado ? '🔒 ' : ''}${name}</span>
+        <span class="steal-choice-sub">Nv. ${pk.level ?? '?'} · ${location === 'team' ? 'Equipo' : 'PC'}</span>
+      `;
+      button.addEventListener('click', () =>
+        confirmBlindado(participantIndex, location, boxIndex, pokemonIndex)
+      );
+      list.appendChild(button);
+    });
+  }
+
+  async function confirmBlindado(participantIndex, location, boxIndex, pokemonIndex) {
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const participant = parts[participantIndex];
+    if (!participant) return;
+
+    let pk = null;
+    if (location === 'team') pk = participant.team?.[pokemonIndex];
+    else if (location === 'pc') pk = participant.pcBoxes?.[boxIndex]?.pokemon?.[pokemonIndex];
+    else pk = participant.box?.[pokemonIndex];
+
+    if (!pk) {
+      alert('Ese Pokémon ya no está disponible.');
+      renderBlindadoChoices(participantIndex);
+      return;
+    }
+
+    if (pk.stolen) {
+      alert('Ese Pokémon está marcado como ROBADO y no puede blindarse.');
+      renderBlindadoChoices(participantIndex);
+      return;
+    }
+
+    const name = pk.nickname || pokemonDisplaySpecies(pk) || pk.species || 'Pokémon';
+    if (!confirm(`¿Usar la carta Blindado para blindar a ${name} en la partida de ${participant.name}?`)) return;
+
+    if (!consumeCollectionCard('Blindado')) {
+      alert('La carta ya no está disponible.');
+      closeModal('modal-steal-pokemon');
+      return;
+    }
+
+    pk.blindado = true;
+
+    saveAdminParticipants(parts);
+    if (typeof saveParticipantToDB === 'function') {
+      try { await saveParticipantToDB(participant); } catch (error) { console.warn(error); }
+    }
+
+    renderParticipantsList();
+    updateCardBadge(loadCollection());
+    closeModal('modal-steal-pokemon');
+    alert(`${name} ha sido BLINDADO en la partida de ${participant.name}.`);
+  }
+
+  // ── USO DE CARTA: MATAS UN POKÉMON (marca un Pokémon como muerto) ──
+  function allKillablePokemon(participant) {
+    const result = [];
+    (participant.team || []).forEach((pk, pokemonIndex) => {
+      if (pk && !pk.dead && !pk.blindado) result.push({ pk, location: 'team', boxIndex: -1, pokemonIndex });
+    });
+    (participant.pcBoxes || []).forEach((box, boxIndex) => {
+      (box?.pokemon || []).forEach((pk, pokemonIndex) => {
+        if (pk && !pk.dead && !pk.blindado) result.push({ pk, location: 'pc', boxIndex, pokemonIndex });
+      });
+    });
+    (participant.box || []).forEach((pk, pokemonIndex) => {
+      if (pk && !pk.dead && !pk.blindado) result.push({ pk, location: 'box', boxIndex: -1, pokemonIndex });
+    });
+    return result;
+  }
+
+  function useKillPokemonCard() {
+    const user = currentSessionUser();
+    if (!user) {
+      closeModal('modal-collection');
+      openModal('modal-auth');
+      return;
+    }
+    const col = loadCollection();
+    if (!col['Matas un Pokémon'] || col['Matas un Pokémon'].count < 1) {
+      alert('No tienes ninguna carta "Matas un Pokémon".');
+      return;
+    }
+
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const available = parts
+      .map((participant, index) => ({ participant, index, pokemon: allKillablePokemon(participant) }))
+      .filter(entry => entry.pokemon.length > 0 && !isOwnParticipant(entry.participant));
+
+    if (!available.length) {
+      alert('No hay partidas con Pokémon disponibles para matar.');
+      return;
+    }
+
+    closeModal('modal-collection');
+    document.getElementById('steal-modal-title').textContent = '💀 Elige una partida';
+    document.getElementById('steal-help').textContent = 'Después podrás elegir el Pokémon a matar. Los Pokémon blindados no pueden ser afectados.';
+    const content = document.getElementById('steal-content');
+    content.innerHTML = '<div class="steal-list"></div>';
+    const list = content.firstElementChild;
+
+    available.forEach(({ participant, index, pokemon }) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'steal-choice';
+      const lead = pokemon[0]?.pk;
+      button.innerHTML = `
+        ${lead ? `<img src="${pokemonSprite(lead, !!lead.shiny)}" alt="">` : ''}
+        <span class="steal-choice-name">${participant.name || 'Partida sin nombre'}</span>
+        <span class="steal-choice-sub">${pokemon.length} Pokémon disponible${pokemon.length === 1 ? '' : 's'}</span>
+      `;
+      button.addEventListener('click', () => renderKillChoices(index));
+      list.appendChild(button);
+    });
+
+    openModal('modal-steal-pokemon');
+  }
+
+  function renderKillChoices(participantIndex) {
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const participant = parts[participantIndex];
+    if (!participant) return;
+    const choices = allKillablePokemon(participant);
+
+    document.getElementById('steal-modal-title').textContent = `💀 Matar en ${participant.name || 'esta partida'}`;
+    document.getElementById('steal-help').innerHTML =
+      '<button class="profile-back" type="button" onclick="useKillPokemonCard()">◀ Cambiar partida</button><br>Elige el Pokémon. La carta se consumirá al confirmar.';
+    const content = document.getElementById('steal-content');
+
+    if (!choices.length) {
+      content.innerHTML = '<div class="collection-empty"><span>📭</span>No quedan Pokémon disponibles.</div>';
+      return;
+    }
+
+    content.innerHTML = '<div class="steal-list"></div>';
+    const list = content.firstElementChild;
+    choices.forEach(({ pk, location, boxIndex, pokemonIndex }) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'steal-choice';
+      const name = pk.nickname || pokemonDisplaySpecies(pk) || pk.species || 'Pokémon';
+      button.innerHTML = `
+        <img src="${pokemonSprite(pk, !!pk.shiny)}" alt="${name}">
+        <span class="steal-choice-name">${pk.stolen ? '💰 ' : ''}${name}</span>
+        <span class="steal-choice-sub">Nv. ${pk.level ?? '?'} · ${location === 'team' ? 'Equipo' : 'PC'}</span>
+      `;
+      button.addEventListener('click', () =>
+        confirmKillPokemon(participantIndex, location, boxIndex, pokemonIndex)
+      );
+      list.appendChild(button);
+    });
+  }
+
+  async function confirmKillPokemon(participantIndex, location, boxIndex, pokemonIndex) {
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const participant = parts[participantIndex];
+    if (!participant) return;
+
+    let pk = null;
+    if (location === 'team') pk = participant.team?.[pokemonIndex];
+    else if (location === 'pc') pk = participant.pcBoxes?.[boxIndex]?.pokemon?.[pokemonIndex];
+    else pk = participant.box?.[pokemonIndex];
+
+    if (!pk || pk.dead) {
+      alert('Ese Pokémon ya no está disponible.');
+      renderKillChoices(participantIndex);
+      return;
+    }
+
+    if (pk.blindado) {
+      alert('Ese Pokémon está BLINDADO y no puede ser afectado.');
+      renderKillChoices(participantIndex);
+      return;
+    }
+
+    const name = pk.nickname || pokemonDisplaySpecies(pk) || pk.species || 'Pokémon';
+    if (!confirm(`¿Usar la carta Matas un Pokémon para matar a ${name} en la partida de ${participant.name}?`)) return;
+
+    if (!consumeCollectionCard('Matas un Pokémon')) {
+      alert('La carta ya no está disponible.');
+      closeModal('modal-steal-pokemon');
+      return;
+    }
+
+    pk.dead = true;
+    participant.deathCount = (participant.deathCount || 0) + 1;
+
+    saveAdminParticipants(parts);
+    if (typeof saveParticipantToDB === 'function') {
+      try { await saveParticipantToDB(participant); } catch (error) { console.warn(error); }
+    }
+
+    renderParticipantsList();
+    updateCardBadge(loadCollection());
+    closeModal('modal-steal-pokemon');
+    alert(`${name} ha sido marcado como MUERTO en la partida de ${participant.name}.`);
+  }
+
+  // ── USO DE CARTA: INTERCAMBIO FORZADO / INTERCAMBIO PRODIGIOSO (solo eligen partida) ──
+  function useSelectParticipantOnlyCard(cardName, emoji, helpText) {
+    const user = currentSessionUser();
+    if (!user) {
+      closeModal('modal-collection');
+      openModal('modal-auth');
+      return;
+    }
+    const col = loadCollection();
+    if (!col[cardName] || col[cardName].count < 1) {
+      alert(`No tienes ninguna carta "${cardName}".`);
+      return;
+    }
+
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const selectable = parts.filter(participant => !isOwnParticipant(participant));
+    if (!selectable.length) {
+      alert('No hay partidas disponibles.');
+      return;
+    }
+
+    closeModal('modal-collection');
+    document.getElementById('steal-modal-title').textContent = `${emoji} ${cardName}`;
+    document.getElementById('steal-help').textContent = helpText;
+    const content = document.getElementById('steal-content');
+    content.innerHTML = '<div class="steal-list"></div>';
+    const list = content.firstElementChild;
+
+    parts.forEach((participant, index) => {
+      if (isOwnParticipant(participant)) return;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'steal-choice';
+      const lead = (participant.team || []).find(pk => pk) || null;
+      button.innerHTML = `
+        ${lead ? `<img src="${pokemonSprite(lead, !!lead.shiny)}" alt="">` : ''}
+        <span class="steal-choice-name">${participant.name || 'Partida sin nombre'}</span>
+      `;
+      button.addEventListener('click', () => confirmSelectParticipantOnlyCard(cardName, index));
+      list.appendChild(button);
+    });
+
+    openModal('modal-steal-pokemon');
+  }
+
+  async function confirmSelectParticipantOnlyCard(cardName, participantIndex) {
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const participant = parts[participantIndex];
+    if (!participant) return;
+
+    if (!confirm(`¿Usar la carta "${cardName}" con la partida de ${participant.name}?`)) return;
+
+    if (!consumeCollectionCard(cardName)) {
+      alert('La carta ya no está disponible.');
+      closeModal('modal-steal-pokemon');
+      return;
+    }
+
+    updateCardBadge(loadCollection());
+    closeModal('modal-steal-pokemon');
+    alert(`Carta "${cardName}" usada con la partida de ${participant.name}.`);
+  }
+
+  function useIntercambioForzadoCard() {
+    useSelectParticipantOnlyCard('Intercambio forzado', '🔀', 'Elige la partida con la que se realizará el intercambio forzado. La carta se consumirá al confirmar.');
+  }
+
+  function useIntercambioProdigiosoCard() {
+    useSelectParticipantOnlyCard('Intercambio prodigioso', '✨', 'Elige la partida con la que se realizará el intercambio prodigioso. La carta se consumirá al confirmar.');
+  }
+
+  function useCombatePokemonCard() {
+    useSelectParticipantOnlyCard('Combate Pokémon', '⚔️', 'Elige la partida contra la que se realizará el combate Pokémon. La carta se consumirá al confirmar.');
+  }
+
+  function useEquipoEspejoCard() {
+    useSelectParticipantOnlyCard('Equipo espejo', '🧬', 'Elige la partida cuyo equipo quieres reflejar. La carta se consumirá al confirmar.');
+  }
+
+  // ── USO DE CARTAS DE SOLO CONFIRMACIÓN ──
+  // Captura extra, Escama Corazón, Shiny forzado, Skipeo y Reviertefectos:
+  // no requieren elegir partida ni Pokémon, solo confirmar su uso.
+  function useConfirmOnlyCard(cardName) {
+    const user = currentSessionUser();
+    if (!user) {
+      closeModal('modal-collection');
+      openModal('modal-auth');
+      return;
+    }
+    const col = loadCollection();
+    if (!col[cardName] || col[cardName].count < 1) {
+      alert(`No tienes ninguna carta "${cardName}".`);
+      return;
+    }
+
+    if (!confirm(`¿Usar la carta "${cardName}"?`)) return;
+
+    if (!consumeCollectionCard(cardName)) {
+      alert('La carta ya no está disponible.');
+      return;
+    }
+
+    updateCardBadge(loadCollection());
+    if (typeof renderCollection === 'function') renderCollection();
+    alert(`Carta "${cardName}" usada.`);
+  }
+
+  function useCapturaExtraCard()   { useConfirmOnlyCard('Captura extra'); }
+  function useEscamaCorazonCard()  { useConfirmOnlyCard('Escama Corazón'); }
+  function useShinyForzadoCard()   { useConfirmOnlyCard('Shiny forzado'); }
+  function useSkipeoCard()         { useConfirmOnlyCard('Skipeo'); }
+  function useRevierteEfectosCard(){ useConfirmOnlyCard('Reviertefectos'); }
+
+  // Sustituir el render de la colección para hacer utilizable la carta de robo.
+  const _baseRenderCollection = renderCollection;
+  renderCollection = function() {
+    _baseRenderCollection();
+    updateCollectionPermissions();
+
+    document.querySelectorAll('.collection-card').forEach(card => {
+      const name = card.querySelector('.collection-card-name')?.textContent?.trim();
+      if (name === 'Robas un Pokémon') {
+        card.classList.add('usable-card');
+        card.title = 'Pulsa para usar esta carta';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.addEventListener('click', useStealPokemonCard);
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            useStealPokemonCard();
+          }
+        });
+      } else if (name === 'Profanatumbas') {
+        card.classList.add('usable-card');
+        card.title = 'Pulsa para usar esta carta';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.addEventListener('click', useProfanatumbasCard);
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            useProfanatumbasCard();
+          }
+        });
+      } else if (name === 'Revivir un Pokémon') {
+        card.classList.add('usable-card');
+        card.title = 'Pulsa para usar esta carta';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.addEventListener('click', useRevivePokemonCard);
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            useRevivePokemonCard();
+          }
+        });
+      } else if (name === 'Blindado') {
+        card.classList.add('usable-card');
+        card.title = 'Pulsa para usar esta carta';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.addEventListener('click', useBlindadoCard);
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            useBlindadoCard();
+          }
+        });
+      } else if (name === 'Intercambio forzado') {
+        card.classList.add('usable-card');
+        card.title = 'Pulsa para usar esta carta';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.addEventListener('click', useIntercambioForzadoCard);
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            useIntercambioForzadoCard();
+          }
+        });
+      } else if (name === 'Intercambio prodigioso') {
+        card.classList.add('usable-card');
+        card.title = 'Pulsa para usar esta carta';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.addEventListener('click', useIntercambioProdigiosoCard);
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            useIntercambioProdigiosoCard();
+          }
+        });
+      } else if (name === 'Matas un Pokémon') {
+        card.classList.add('usable-card');
+        card.title = 'Pulsa para usar esta carta';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.addEventListener('click', useKillPokemonCard);
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            useKillPokemonCard();
+          }
+        });
+      } else if (name === 'Combate Pokémon') {
+        card.classList.add('usable-card');
+        card.title = 'Pulsa para usar esta carta';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.addEventListener('click', useCombatePokemonCard);
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            useCombatePokemonCard();
+          }
+        });
+      } else if (name === 'Equipo espejo') {
+        card.classList.add('usable-card');
+        card.title = 'Pulsa para usar esta carta';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.addEventListener('click', useEquipoEspejoCard);
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            useEquipoEspejoCard();
+          }
+        });
+      } else if (name === 'Captura extra') {
+        card.classList.add('usable-card');
+        card.title = 'Pulsa para usar esta carta';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.addEventListener('click', useCapturaExtraCard);
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            useCapturaExtraCard();
+          }
+        });
+      } else if (name === 'Escama Corazón') {
+        card.classList.add('usable-card');
+        card.title = 'Pulsa para usar esta carta';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.addEventListener('click', useEscamaCorazonCard);
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            useEscamaCorazonCard();
+          }
+        });
+      } else if (name === 'Shiny forzado') {
+        card.classList.add('usable-card');
+        card.title = 'Pulsa para usar esta carta';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.addEventListener('click', useShinyForzadoCard);
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            useShinyForzadoCard();
+          }
+        });
+      } else if (name === 'Skipeo') {
+        card.classList.add('usable-card');
+        card.title = 'Pulsa para usar esta carta';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.addEventListener('click', useSkipeoCard);
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            useSkipeoCard();
+          }
+        });
+      } else if (name === 'Reviertefectos') {
+        card.classList.add('usable-card');
+        card.title = 'Pulsa para usar esta carta';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.addEventListener('click', useRevierteEfectosCard);
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            useRevierteEfectosCard();
+          }
+        });
+      }
+    });
+  };
+
+  // Mantener permisos correctos al iniciar/cerrar/restaurar sesión.
+  const _updateAuthUIForCards = updateAuthUI;
+  updateAuthUI = function(user, emoji) {
+    _updateAuthUIForCards(user, emoji);
+    updateCollectionPermissions();
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    updateCollectionPermissions();
+    updateCardBadge(loadCollection());
   });
 
 </script>
