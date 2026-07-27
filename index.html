@@ -3038,10 +3038,8 @@
     { emoji: '💰',  label: 'Legendaria', value: 'Robas un Pokémon',              rarity: 'legendary' },
     { emoji: '🎣',  label: 'Épica',       value: 'Captura extra',                 rarity: 'epic'      },
     { emoji: '🃏',  label: 'Legendaria', value: '+2 cartas',                     rarity: 'legendary' },
-    { emoji: '🔀',  label: 'Épica',      value: 'Intercambio forzado',           rarity: 'epic'      },
     { emoji: '😶',  label: 'Común',      value: 'Nada',                          rarity: 'common'    },
     { emoji: '⚔️',  label: 'Legendaria', value: 'Combate Pokémon',               rarity: 'legendary' },
-    { emoji: '✨',  label: 'Rara',       value: 'Intercambio prodigioso',        rarity: 'rare'      },
     { emoji: '💞',  label: 'Común',      value: 'Escama Corazón',                rarity: 'common'    },
     { emoji: '⭐',  label: 'Épica',      value: 'Shiny forzado',                 rarity: 'epic'      },
     { emoji: '😇',  label: 'Legendaria', value: 'Revivir un Pokémon',            rarity: 'legendary' },
@@ -3376,6 +3374,7 @@
     { code: 'MITADDELD3',        sobres: 3 },
     { code: 'ULTIMOSSOBRES',     sobres: 3 },
     { code: 'FELIZCUMPLEAÑOS',   sobres: 1, cardCount: 1, forceRarity: 'legendary' },
+    { code: 'PRUEBASADMIN',      sobres: 0, giveAllCards: 5 },
   ];
 
   let envelopeSobresTotal = 1;
@@ -3424,6 +3423,26 @@
     }
 
     markEnvelopeCodeUsed(match.code);
+
+    // Contraseña especial de pruebas: da 5 copias de cada carta directamente,
+    // sin pasar por la animación del sobre.
+    if (match.giveAllCards) {
+      const col = loadCollection();
+      recompensas.forEach(r => {
+        if (r.value === 'Nada') return;
+        if (!col[r.value]) col[r.value] = { ...r, count: 0 };
+        col[r.value].count += match.giveAllCards;
+      });
+      saveCollection(col);
+      updateCardBadge(col);
+
+      msg.textContent = `🧪 ¡Contraseña de pruebas! Se han añadido ${match.giveAllCards} copias de cada carta a tu colección.`;
+      msg.className = 'envelope-code-msg ok';
+      input.value = '';
+      setTimeout(() => closeModal('modal-envelope'), 900);
+      return;
+    }
+
     envelopeSobresTotal = match.sobres;
     envelopeSobresRemaining = match.sobres;
     envelopeCardCount = match.cardCount || 3;
@@ -3903,12 +3922,13 @@
     if (id === 'modal-collection') { renderCollection(); document.getElementById('collection-btn').classList.add('cards-visible'); }
     if (id === 'modal-ranking') { renderRanking(currentRankingFilter); }
     if (id === 'modal-notif') {
-      renderNotifs();
-      // Marcar como leídas tras 1s de visualización
-      setTimeout(() => {
-        notifData = notifData.map(n => ({ ...n, unread: false }));
-        setTimeout(updateBadge, 800);
-      }, 1000);
+      loadAdminNotifs().then(() => {
+        // Marcar como leídas tras 1s de visualización
+        setTimeout(() => {
+          notifData = notifData.map(n => ({ ...n, unread: false }));
+          setTimeout(updateBadge, 800);
+        }, 1000);
+      });
     }
   }
 
@@ -5676,37 +5696,78 @@
   }
 
   // ── Anuncios / Notificaciones ──────────────────────────────────────────────
+  // Ahora los anuncios se guardan en la base de datos (tabla "anuncios") para
+  // que los vea TODO el mundo, no solo el navegador de quien los publica.
+  // Si la API no está disponible, cae a localStorage como antes (modo local).
   function selectNotifEmoji(el, emoji) {
     selectedNotifEmoji = emoji;
     document.querySelectorAll('.admin-emoji-opt').forEach(e => e.classList.remove('selected'));
     el.classList.add('selected');
   }
 
+  // Publica un anuncio visible para todos. Lo usan tanto el panel de admin
+  // como el aviso automático de "X ha usado la carta Y".
+  async function postAnuncio(emoji, mensaje) {
+    if (await apiCheck()) {
+      try {
+        await apiPost('/anuncios', { emoji, mensaje });
+        await loadAdminNotifs();
+        return true;
+      } catch (e) {
+        console.warn('No se pudo publicar el anuncio en la BD:', e.message);
+      }
+    }
+    // Fallback local (sin backend disponible)
+    const notifs = JSON.parse(localStorage.getItem(ADMIN_NOTIF_KEY) || '[]');
+    const now = new Date();
+    const time = now.toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+    notifs.unshift({ emoji, text: mensaje, time, unread: true, id: Date.now() });
+    localStorage.setItem(ADMIN_NOTIF_KEY, JSON.stringify(notifs));
+    loadAdminNotifs();
+    return false;
+  }
+
   function adminSendNotif() {
     const text = document.getElementById('admin-notif-text').value.trim();
     if (!text) { showAdminMsg('admin-notif-msg', 'Escribe un mensaje primero.', 'err'); return; }
 
-    const notifs = JSON.parse(localStorage.getItem(ADMIN_NOTIF_KEY) || '[]');
-    const now = new Date();
-    const time = now.toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
-    notifs.unshift({ emoji: selectedNotifEmoji, text, time, unread: true, id: Date.now() });
-    localStorage.setItem(ADMIN_NOTIF_KEY, JSON.stringify(notifs));
-
-    // Actualizar notifData global inmediatamente
-    loadAdminNotifs();
-    document.getElementById('admin-notif-text').value = '';
-    showAdminMsg('admin-notif-msg', '📢 Anuncio publicado.', 'ok');
+    postAnuncio(selectedNotifEmoji, text).then(() => {
+      document.getElementById('admin-notif-text').value = '';
+      showAdminMsg('admin-notif-msg', '📢 Anuncio publicado.', 'ok');
+    });
   }
 
-  function loadAdminNotifs() {
+  async function loadAdminNotifs() {
+    const readIds = JSON.parse(sessionStorage.getItem('ds3-read-notifs') || '[]');
+
+    if (await apiCheck()) {
+      try {
+        const rows = await apiGet('/anuncios');
+        notifData = rows.map(r => ({
+          id: r.id,
+          emoji: r.emoji || '📢',
+          text: r.mensaje,
+          time: r.creado_en ? new Date(r.creado_en).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '',
+          unread: !readIds.includes(r.id),
+        }));
+        renderNotifs();
+        return;
+      } catch (e) {
+        console.warn('No se pudieron cargar los anuncios de la BD:', e.message);
+      }
+    }
+
+    // Fallback local
     try {
       const saved = JSON.parse(localStorage.getItem(ADMIN_NOTIF_KEY) || '[]');
-      // Marcar como leídas las que ya estaban leídas (persiste entre sesiones)
-      const readIds = JSON.parse(sessionStorage.getItem('ds3-read-notifs') || '[]');
       notifData = saved.map(n => ({ ...n, unread: !readIds.includes(n.id) }));
       renderNotifs();
     } catch {}
   }
+
+  // Refresco periódico para que a todos les lleguen los avisos de uso de cartas
+  // sin tener que recargar la página.
+  setInterval(loadAdminNotifs, 20000);
 
   // Sobreescribir clearNotifs para persistir estado de lectura
   const _origClearNotifs = clearNotifs;
@@ -6058,6 +6119,19 @@ mpHighlight(0);
     // referencias que dentro de pcBoxes, igual que hace el parseo de saves).
     const box = pcBoxes.flatMap(b => b.pokemon);
 
+    const attacksReceived = (p.ataques || []).map(a => ({
+      id:           a.client_id || String(a.id),
+      card:         a.carta,
+      attacker:     a.atacante,
+      pokemonName:  a.pokemon_nombre,
+      effect:       a.efecto,
+      location:     a.ubicacion,
+      boxIndex:     a.pc_box_index,
+      pokemonIndex: a.pokemon_index,
+      timestamp:    a.creado_en,
+      reverted:     !!a.revertido,
+    }));
+
     return {
       _dbId:       p.id,
       name:        p.nombre,
@@ -6070,6 +6144,7 @@ mpHighlight(0);
       team,
       box,
       pcBoxes,
+      attacksReceived,
       cartas:  p.cartas || [],
       pokemon: team[0]?.id || 1,
     };
@@ -6100,6 +6175,7 @@ mpHighlight(0);
       team:    uiParticipant.team || [],
       box:     uiParticipant.box || [],
       pcBoxes: uiParticipant.pcBoxes || [],
+      attacksReceived: uiParticipant.attacksReceived || [],
     };
     try {
       if (uiParticipant._dbId) {
@@ -6163,17 +6239,35 @@ mpHighlight(0);
     return (participant.name || '').trim().toLowerCase() === user.trim().toLowerCase();
   }
 
-  // Si el participante tiene un Escudo real activo, lo consume (una sola vez)
-  // y devuelve true para que la carta de ataque que lo intentó no tenga efecto.
-  // El escudo NO protege de cartas de categoría Legendaria: solo bloquea
-  // ataques de categoría inferior (Épica, Rara o Común).
-  function consumeRoyalShieldIfActive(participant, attackerRarity) {
-    if (attackerRarity === 'legendary') return false;
-    if (participant && participant.royalShield) {
-      participant.royalShield = false;
-      return true;
+  // Registra un ataque recibido en el historial del participante (máx. 10),
+  // para que luego pueda revertirlo con Escudo real o Reviertefectos.
+  function logAttackReceived(participant, cardName, pkName, effect, location, boxIndex, pokemonIndex) {
+    if (!participant) return;
+    if (!Array.isArray(participant.attacksReceived)) participant.attacksReceived = [];
+    participant.attacksReceived.push({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      card: cardName,
+      attacker: currentSessionUser() || 'Alguien',
+      pokemonName: pkName || null,
+      effect,       // 'stolen' | 'dead'
+      location, boxIndex, pokemonIndex,
+      timestamp: new Date().toISOString(),
+      reverted: false,
+    });
+    // Solo conservamos los últimos 10 ataques.
+    if (participant.attacksReceived.length > 10) {
+      participant.attacksReceived = participant.attacksReceived.slice(-10);
     }
-    return false;
+  }
+
+  // Publica en las notificaciones de todos que un usuario ha usado una carta,
+  // y contra quién la ha usado (si aplica).
+  function broadcastCardUseNotif(cardName, emoji, targetName) {
+    const user = currentSessionUser() || 'Alguien';
+    const mensaje = targetName
+      ? `${user} ha usado la carta "${cardName}" contra ${targetName}.`
+      : `${user} ha usado la carta "${cardName}".`;
+    postAnuncio(emoji || '🎴', mensaje);
   }
 
   function updateCollectionPermissions() {
@@ -6324,6 +6418,7 @@ mpHighlight(0);
     pk.stolen = true;
     pk.stolenBy = thief;
     pk.stolenAt = new Date().toISOString();
+    logAttackReceived(participant, 'Robas un Pokémon', name, 'stolen', location, boxIndex, pokemonIndex);
 
     saveAdminParticipants(parts);
     if (typeof saveParticipantToDB === 'function') {
@@ -6340,6 +6435,7 @@ mpHighlight(0);
     });
     localStorage.setItem(stolenKey, JSON.stringify(stolen));
 
+    broadcastCardUseNotif('Robas un Pokémon', '💰', participant.name);
     renderParticipantsList();
     updateCardBadge(loadCollection());
     closeModal('modal-steal-pokemon');
@@ -6473,13 +6569,12 @@ mpHighlight(0);
       return;
     }
 
-    // Profanatumbas es Legendaria: consumeRoyalShieldIfActive('legendary')
-    // siempre devuelve false, así que ningún Escudo real puede detenerla.
-    consumeRoyalShieldIfActive(participant, 'legendary');
-
+    // Profanatumbas es Legendaria: ningún Escudo real puede detenerla, pero
+    // sí queda registrada como ataque recibido para poder revertirla después.
     pk.stolen = true;
     pk.stolenBy = thief;
     pk.stolenAt = new Date().toISOString();
+    logAttackReceived(participant, 'Profanatumbas', name, 'stolen', location, boxIndex, pokemonIndex);
 
     saveAdminParticipants(parts);
     if (typeof saveParticipantToDB === 'function') {
@@ -6496,6 +6591,7 @@ mpHighlight(0);
     });
     localStorage.setItem(stolenKey, JSON.stringify(stolen));
 
+    broadcastCardUseNotif('Profanatumbas', '🎗', participant.name);
     renderParticipantsList();
     updateCardBadge(loadCollection());
     closeModal('modal-steal-pokemon');
@@ -6639,6 +6735,7 @@ mpHighlight(0);
       try { await saveParticipantToDB(participant); } catch (error) { console.warn(error); }
     }
 
+    broadcastCardUseNotif('Revivir un Pokémon', '😇');
     renderParticipantsList();
     updateCardBadge(loadCollection());
     closeModal('modal-steal-pokemon');
@@ -6782,6 +6879,7 @@ mpHighlight(0);
       try { await saveParticipantToDB(participant); } catch (error) { console.warn(error); }
     }
 
+    broadcastCardUseNotif('Blindado', '🔒');
     renderParticipantsList();
     updateCardBadge(loadCollection());
     closeModal('modal-steal-pokemon');
@@ -6921,12 +7019,14 @@ mpHighlight(0);
     // Matas un Pokémon es Legendaria: el Escudo real no la bloquea.
     pk.dead = true;
     participant.deathCount = (participant.deathCount || 0) + 1;
+    logAttackReceived(participant, 'Matas un Pokémon', name, 'dead', location, boxIndex, pokemonIndex);
 
     saveAdminParticipants(parts);
     if (typeof saveParticipantToDB === 'function') {
       try { await saveParticipantToDB(participant); } catch (error) { console.warn(error); }
     }
 
+    broadcastCardUseNotif('Matas un Pokémon', '💀', participant.name);
     renderParticipantsList();
     updateCardBadge(loadCollection());
     closeModal('modal-steal-pokemon');
@@ -6993,27 +7093,24 @@ mpHighlight(0);
 
     updateCardBadge(loadCollection());
     closeModal('modal-steal-pokemon');
+    const emoji = recompensas.find(r => r.value === cardName)?.emoji || '🎴';
+    broadcastCardUseNotif(cardName, emoji, participant.name);
     alert(`Carta "${cardName}" usada con la partida de ${participant.name}.`);
-  }
-
-  function useIntercambioForzadoCard() {
-    useSelectParticipantOnlyCard('Intercambio forzado', '🔀', 'Elige la partida con la que se realizará el intercambio forzado. La carta se consumirá al confirmar.');
-  }
-
-  function useIntercambioProdigiosoCard() {
-    useSelectParticipantOnlyCard('Intercambio prodigioso', '✨', 'Elige la partida con la que se realizará el intercambio prodigioso. La carta se consumirá al confirmar.');
   }
 
   function useCombatePokemonCard() {
     useSelectParticipantOnlyCard('Combate Pokémon', '⚔️', 'Elige la partida contra la que se realizará el combate Pokémon. La carta se consumirá al confirmar.');
   }
 
-  // Escudo real: se aplica siempre a tu propia partida y te protege del
-  // efecto de la próxima carta de ataque de categoría inferior a Legendaria
-  // (p.ej. Blindado). Robar, Matar y Profanatumbas son Legendarias y el
-  // escudo NO las bloquea.
-  // que alguien use contra ti. Es de un solo uso.
-  function useEscudoRealCard() {
+  // ── USO DE CARTAS: ESCUDO REAL Y REVIERTEFECTOS ──────────────────────────
+  // Ambas funcionan igual: si te han atacado (Robas un Pokémon, Matas un
+  // Pokémon o Profanatumbas), puedes elegir uno de tus últimos ataques
+  // recibidos y revertir su efecto por completo, como si nunca hubiera
+  // pasado. Solo puedes usarlas sobre tu propia partida.
+  function useEscudoRealCard()     { useRevertAttackCard('Escudo real', '🛡️'); }
+  function useRevierteEfectosCard(){ useRevertAttackCard('Reviertefectos', '🔙'); }
+
+  function useRevertAttackCard(cardName, emoji) {
     const user = currentSessionUser();
     if (!user) {
       closeModal('modal-collection');
@@ -7021,43 +7118,103 @@ mpHighlight(0);
       return;
     }
     const col = loadCollection();
-    if (!col['Escudo real'] || col['Escudo real'].count < 1) {
-      alert('No tienes ninguna carta "Escudo real".');
+    if (!col[cardName] || col[cardName].count < 1) {
+      alert(`No tienes ninguna carta "${cardName}".`);
       return;
     }
 
     const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
-    const own = parts.find(p => isOwnParticipant(p));
+    const ownIndex = parts.findIndex(p => isOwnParticipant(p));
+    const own = parts[ownIndex];
     if (!own) {
       alert('No se encontró tu partida.');
       return;
     }
 
-    if (own.royalShield) {
-      alert('Ya tienes un Escudo real activo. No puedes tener dos a la vez.');
+    const attacks = (own.attacksReceived || []).filter(a => !a.reverted).slice(-5).reverse();
+    if (!attacks.length) {
+      alert('No has recibido ningún ataque reciente que puedas revertir.');
       return;
     }
 
-    if (!confirm('¿Usar la carta "Escudo real"? Te protegerá del efecto de la próxima carta de ataque de categoría inferior a Legendaria (por ejemplo Blindado) que usen contra ti. No protege de cartas Legendarias como Robas un Pokémon, Matas un Pokémon o Profanatumbas.')) return;
+    closeModal('modal-collection');
+    document.getElementById('steal-modal-title').textContent = `${emoji} ${cardName}`;
+    document.getElementById('steal-help').textContent = 'Elige uno de tus últimos ataques recibidos para revertirlo por completo. La carta se consumirá al confirmar.';
+    const content = document.getElementById('steal-content');
+    content.innerHTML = '<div class="steal-list"></div>';
+    const list = content.firstElementChild;
 
-    if (!consumeCollectionCard('Escudo real')) {
+    attacks.forEach(attack => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'steal-choice';
+      const when = attack.timestamp ? new Date(attack.timestamp).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '';
+      button.innerHTML = `
+        <span class="steal-choice-name">${attack.card}</span>
+        <span class="steal-choice-sub">${attack.attacker} → ${attack.pokemonName || '?'}</span>
+        <span class="steal-choice-sub">${when}</span>
+      `;
+      button.addEventListener('click', () => confirmRevertAttack(cardName, emoji, ownIndex, attack.id));
+      list.appendChild(button);
+    });
+
+    openModal('modal-steal-pokemon');
+  }
+
+  async function confirmRevertAttack(cardName, emoji, participantIndex, attackId) {
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const participant = parts[participantIndex];
+    if (!participant) return;
+
+    const attack = (participant.attacksReceived || []).find(a => a.id === attackId);
+    if (!attack || attack.reverted) {
+      alert('Ese ataque ya no está disponible.');
+      useRevertAttackCard(cardName, emoji);
+      return;
+    }
+
+    if (!confirm(`¿Usar "${cardName}" para revertir el ataque "${attack.card}" de ${attack.attacker} sobre ${attack.pokemonName || 'ese Pokémon'}?`)) return;
+
+    if (!consumeCollectionCard(cardName)) {
       alert('La carta ya no está disponible.');
+      closeModal('modal-steal-pokemon');
       return;
     }
 
-    own.royalShield = true;
+    let pk = null;
+    if (attack.location === 'team') pk = participant.team?.[attack.pokemonIndex];
+    else if (attack.location === 'pc') pk = participant.pcBoxes?.[attack.boxIndex]?.pokemon?.[attack.pokemonIndex];
+    else pk = participant.box?.[attack.pokemonIndex];
+
+    if (pk) {
+      if (attack.effect === 'stolen') {
+        pk.stolen = false;
+        delete pk.stolenBy;
+        delete pk.stolenAt;
+      } else if (attack.effect === 'dead') {
+        pk.dead = false;
+        // A diferencia de Revivir un Pokémon, esto revierte el ataque por
+        // completo: como si nunca hubiera pasado, así que sí resta la muerte.
+        participant.deathCount = Math.max(0, (participant.deathCount || 0) - 1);
+      }
+    }
+
+    attack.reverted = true;
+
     saveAdminParticipants(parts);
     if (typeof saveParticipantToDB === 'function') {
-      saveParticipantToDB(own).catch(err => console.warn(err));
+      try { await saveParticipantToDB(participant); } catch (error) { console.warn(error); }
     }
 
+    broadcastCardUseNotif(cardName, emoji, `el ataque "${attack.card}" de ${attack.attacker}`);
+    renderParticipantsList();
     updateCardBadge(loadCollection());
-    if (typeof renderCollection === 'function') renderCollection();
-    alert('🛡️ Escudo real activado. La próxima carta de ataque de categoría inferior a Legendaria usada contra ti no tendrá efecto.');
+    closeModal('modal-steal-pokemon');
+    alert(`✅ Se ha revertido el ataque "${attack.card}" de ${attack.attacker}.`);
   }
 
   // ── USO DE CARTAS DE SOLO CONFIRMACIÓN ──
-  // Captura extra, Escama Corazón, Shiny forzado, Skipeo y Reviertefectos:
+  // Captura extra, Escama Corazón, Shiny forzado y Skipeo:
   // no requieren elegir partida ni Pokémon, solo confirmar su uso.
   function useConfirmOnlyCard(cardName) {
     const user = currentSessionUser();
@@ -7081,6 +7238,8 @@ mpHighlight(0);
 
     updateCardBadge(loadCollection());
     if (typeof renderCollection === 'function') renderCollection();
+    const emoji = recompensas.find(r => r.value === cardName)?.emoji || '🎴';
+    broadcastCardUseNotif(cardName, emoji);
     alert(`Carta "${cardName}" usada.`);
   }
 
@@ -7088,7 +7247,6 @@ mpHighlight(0);
   function useEscamaCorazonCard()  { useConfirmOnlyCard('Escama Corazón'); }
   function useShinyForzadoCard()   { useConfirmOnlyCard('Shiny forzado'); }
   function useSkipeoCard()         { useConfirmOnlyCard('Skipeo'); }
-  function useRevierteEfectosCard(){ useConfirmOnlyCard('Reviertefectos'); }
 
   // Sustituir el render de la colección para hacer utilizable la carta de robo.
   const _baseRenderCollection = renderCollection;
@@ -7144,30 +7302,6 @@ mpHighlight(0);
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
             useBlindadoCard();
-          }
-        });
-      } else if (name === 'Intercambio forzado') {
-        card.classList.add('usable-card');
-        card.title = 'Pulsa para usar esta carta';
-        card.setAttribute('role', 'button');
-        card.setAttribute('tabindex', '0');
-        card.addEventListener('click', useIntercambioForzadoCard);
-        card.addEventListener('keydown', event => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            useIntercambioForzadoCard();
-          }
-        });
-      } else if (name === 'Intercambio prodigioso') {
-        card.classList.add('usable-card');
-        card.title = 'Pulsa para usar esta carta';
-        card.setAttribute('role', 'button');
-        card.setAttribute('tabindex', '0');
-        card.addEventListener('click', useIntercambioProdigiosoCard);
-        card.addEventListener('keydown', event => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            useIntercambioProdigiosoCard();
           }
         });
       } else if (name === 'Matas un Pokémon') {
