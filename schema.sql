@@ -115,3 +115,22 @@ CREATE TABLE IF NOT EXISTS anuncios (
   mensaje    TEXT NOT NULL,
   creado_en  TIMESTAMP DEFAULT NOW()
 );
+
+-- v3: historial de ataques recibidos por participante (Robas un Pokémon,
+-- Matas un Pokémon, Profanatumbas), para poder revertirlos con las cartas
+-- Escudo real / Reviertefectos.
+CREATE TABLE IF NOT EXISTS ataques_recibidos (
+  id               SERIAL PRIMARY KEY,
+  client_id        VARCHAR(64),            -- id generado en el navegador (para que el frontend lo referencie)
+  participante_id  INTEGER NOT NULL REFERENCES participantes(id) ON DELETE CASCADE,
+  carta            VARCHAR(64),            -- 'Robas un Pokémon' | 'Matas un Pokémon' | 'Profanatumbas'
+  atacante         VARCHAR(255),           -- usuario que la usó
+  pokemon_nombre   VARCHAR(64),
+  efecto           VARCHAR(16),            -- 'stolen' | 'dead'
+  ubicacion        VARCHAR(10),            -- 'team' | 'pc' | 'box'
+  pc_box_index     INTEGER,
+  pokemon_index    INTEGER,
+  revertido        BOOLEAN DEFAULT FALSE,
+  creado_en        TIMESTAMP DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_ataques_participante ON ataques_recibidos(participante_id);
