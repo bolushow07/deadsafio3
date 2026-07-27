@@ -1,10 +1,16 @@
 // ═══════════════════════════════════════════════════════════
-// DEADSAFIO 3 — API Server
+// DEADSAFIO 3 — API Server (Postgres / Neon)
 // Arranca con: node server.js
+//
+// v2: además del equipo, ahora persiste también PC (pcBoxes),
+// medallas, y las marcas de las cartas por pokémon (muerto,
+// robado, blindado) más el contador de muertes y el Escudo
+// real por participante. Ejecuta schema.sql (v2) antes de usar
+// esta versión.
 // ═══════════════════════════════════════════════════════════
 
 const express = require('express');
-const mysql   = require('mysql2/promise');
+const { Pool } = require('pg');
 const cors    = require('cors');
 const fs      = require('fs');
 const path    = require('path');
@@ -13,16 +19,14 @@ const app = express();
 app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '10mb' }));
 
-// Servir el Index.html en la raíz
+// Servir el index.html en la raíz
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // ── Config (lee .env si existe, si no usa valores por defecto) ─
 function getEnv(key, fallback) {
-  // Railway/production: usar variables de entorno del sistema primero
   if (process.env[key]) return process.env[key];
-  // Local: leer del archivo .env
   try {
     const env = fs.readFileSync(path.join(__dirname, '.env'), 'utf8');
     const match = env.match(new RegExp(`^${key}=(.+)$`, 'm'));
@@ -30,26 +34,35 @@ function getEnv(key, fallback) {
   } catch { return fallback; }
 }
 
-const DB_CONFIG = {
-  host:     getEnv('DB_HOST',     'localhost'),
-  port:     parseInt(getEnv('DB_PORT', '3306')),
-  user:     getEnv('DB_USER',     'root'),
-  password: getEnv('DB_PASSWORD', ''),
-  database: getEnv('DB_NAME',     'deadsafio3'),
-  charset:  'utf8mb4',
-};
+// Neon te da UNA cadena de conexión completa (dashboard → "Connect").
+const DATABASE_URL = getEnv('DATABASE_URL', '');
+
+const DB_CONFIG = DATABASE_URL
+  ? { connectionString: DATABASE_URL }
+  : {
+      host:     getEnv('DB_HOST',     'localhost'),
+      port:     parseInt(getEnv('DB_PORT', '5432')),
+      user:     getEnv('DB_USER',     'postgres'),
+      password: getEnv('DB_PASSWORD', ''),
+      database: getEnv('DB_NAME',     'deadsafio3'),
+    };
+
+const isLocal = (DATABASE_URL || DB_CONFIG.host || '').includes('localhost');
+const pool = new Pool({
+  ...DB_CONFIG,
+  ssl: isLocal ? false : { rejectUnauthorized: false },
+  max: 10,
+});
+
 const PORT = parseInt(process.env.PORT || getEnv('API_PORT', '3001'));
 
-// ── Pool de conexiones ─────────────────────────────────────
-let pool;
-async function getPool() {
-  if (!pool) pool = mysql.createPool({ ...DB_CONFIG, waitForConnections: true, connectionLimit: 10 });
-  return pool;
+// ── Helper de queries ───────────────────────────────────────
+function toPgSql(sql) {
+  let i = 0;
+  return sql.replace(/\?/g, () => `$${++i}`);
 }
-
 async function query(sql, params = []) {
-  const p = await getPool();
-  const [rows] = await p.execute(sql, params);
+  const { rows } = await pool.query(toPgSql(sql), params);
   return rows;
 }
 
@@ -67,17 +80,17 @@ app.get('/api/health', async (req, res) => {
 // PARTICIPANTES
 // ════════════════════════════════════════════════════════════
 
-// GET /api/participantes — lista todos con su equipo pokémon
+// GET /api/participantes — lista todos con equipo + PC + cartas
 app.get('/api/participantes', async (req, res) => {
   try {
     const parts = await query(`
-      SELECT id, nombre, emoji, estado, num, creado_en
+      SELECT id, nombre, emoji, estado, num, badges, death_count, royal_shield, creado_en
       FROM participantes ORDER BY COALESCE(num, id)
     `);
 
     for (const p of parts) {
       p.pokemon = await query(
-        'SELECT * FROM pokemon WHERE participante_id = ? ORDER BY slot',
+        'SELECT * FROM pokemon WHERE participante_id = ? ORDER BY ubicacion, pc_box_index, slot',
         [p.id]
       );
       p.cartas = await query(
@@ -92,12 +105,13 @@ app.get('/api/participantes', async (req, res) => {
   }
 });
 
-// GET /api/participantes/:id — uno solo con equipo completo
+// GET /api/participantes/:id — uno solo con equipo + PC completos
 app.get('/api/participantes/:id', async (req, res) => {
   try {
-    const [p] = await query('SELECT * FROM participantes WHERE id = ?', [req.params.id]);
+    const rows = await query('SELECT * FROM participantes WHERE id = ?', [req.params.id]);
+    const p = rows[0];
     if (!p) return res.status(404).json({ error: 'No encontrado' });
-    p.pokemon = await query('SELECT * FROM pokemon WHERE participante_id = ? ORDER BY slot', [p.id]);
+    p.pokemon = await query('SELECT * FROM pokemon WHERE participante_id = ? ORDER BY ubicacion, pc_box_index, slot', [p.id]);
     p.cartas  = await query('SELECT * FROM cartas WHERE participante_id = ? ORDER BY creado_en', [p.id]);
     res.json(p);
   } catch (e) {
@@ -105,80 +119,81 @@ app.get('/api/participantes/:id', async (req, res) => {
   }
 });
 
-// POST /api/participantes — crear nuevo con su equipo
+// POST /api/participantes — crear nuevo con equipo + PC
 app.post('/api/participantes', async (req, res) => {
-  const { nombre, emoji = '💀', estado = 'activo', num, team = [], cartas = [] } = req.body;
+  const {
+    nombre, emoji = '💀', estado = 'activo', num,
+    badges = 0, deathCount = 0, royalShield = false,
+    team = [], pcBoxes = [], cartas = [],
+  } = req.body;
   if (!nombre) return res.status(400).json({ error: 'nombre requerido' });
 
-  const p = await getPool();
-  const conn = await p.getConnection();
+  const client = await pool.connect();
   try {
-    await conn.beginTransaction();
+    await client.query('BEGIN');
 
-    const [result] = await conn.execute(
-      'INSERT INTO participantes (nombre, emoji, estado, num) VALUES (?, ?, ?, ?)',
-      [nombre, emoji, estado, num || null]
+    const insertPart = await client.query(
+      `INSERT INTO participantes (nombre, emoji, estado, num, badges, death_count, royal_shield)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+      [nombre, emoji, estado, num || null, badges || 0, deathCount || 0, !!royalShield]
     );
-    const partId = result.insertId;
+    const partId = insertPart.rows[0].id;
 
-    // Insertar equipo pokémon
-    for (let i = 0; i < team.length && i < 6; i++) {
-      await insertPokemon(conn, partId, i, team[i]);
-    }
+    await insertAllPokemon(client, partId, team, pcBoxes);
 
-    // Insertar cartas
     for (const carta of cartas) {
-      await conn.execute(
-        'INSERT INTO cartas (participante_id, carta_id, nombre, tipo, rareza, imagen_url) VALUES (?,?,?,?,?,?)',
+      await client.query(
+        'INSERT INTO cartas (participante_id, carta_id, nombre, tipo, rareza, imagen_url) VALUES ($1,$2,$3,$4,$5,$6)',
         [partId, carta.carta_id || carta.id, carta.nombre || '', carta.tipo || '', carta.rareza || '', carta.imagen_url || '']
       );
     }
 
-    await conn.commit();
+    await client.query('COMMIT');
     res.json({ ok: true, id: partId });
   } catch (e) {
-    await conn.rollback();
+    await client.query('ROLLBACK');
     res.status(500).json({ error: e.message });
   } finally {
-    conn.release();
+    client.release();
   }
 });
 
-// PUT /api/participantes/:id — actualizar datos + equipo completo
+// PUT /api/participantes/:id — actualizar datos + equipo + PC completos
 app.put('/api/participantes/:id', async (req, res) => {
-  const { nombre, emoji, estado, num, team } = req.body;
-  const p = await getPool();
-  const conn = await p.getConnection();
+  const { nombre, emoji, estado, num, badges, deathCount, royalShield, team, pcBoxes } = req.body;
+  const client = await pool.connect();
   try {
-    await conn.beginTransaction();
+    await client.query('BEGIN');
 
-    if (nombre || emoji || estado || num !== undefined) {
-      const sets = [];
-      const vals = [];
-      if (nombre) { sets.push('nombre=?'); vals.push(nombre); }
-      if (emoji)  { sets.push('emoji=?');  vals.push(emoji);  }
-      if (estado) { sets.push('estado=?'); vals.push(estado); }
-      if (num !== undefined) { sets.push('num=?'); vals.push(num); }
-      if (sets.length) {
-        vals.push(req.params.id);
-        await conn.execute(`UPDATE participantes SET ${sets.join(',')} WHERE id=?`, vals);
-      }
+    const sets = [];
+    const vals = [];
+    let i = 0;
+    if (nombre)                  { sets.push(`nombre=$${++i}`);       vals.push(nombre); }
+    if (emoji)                   { sets.push(`emoji=$${++i}`);        vals.push(emoji); }
+    if (estado)                  { sets.push(`estado=$${++i}`);       vals.push(estado); }
+    if (num !== undefined)       { sets.push(`num=$${++i}`);          vals.push(num); }
+    if (badges !== undefined)    { sets.push(`badges=$${++i}`);       vals.push(badges); }
+    if (deathCount !== undefined){ sets.push(`death_count=$${++i}`);  vals.push(deathCount); }
+    if (royalShield !== undefined){ sets.push(`royal_shield=$${++i}`); vals.push(!!royalShield); }
+    if (sets.length) {
+      vals.push(req.params.id);
+      await client.query(`UPDATE participantes SET ${sets.join(',')} WHERE id=$${++i}`, vals);
     }
 
-    if (team) {
-      await conn.execute('DELETE FROM pokemon WHERE participante_id=?', [req.params.id]);
-      for (let i = 0; i < team.length && i < 6; i++) {
-        await insertPokemon(conn, req.params.id, i, team[i]);
-      }
+    // El cliente siempre manda team + pcBoxes juntos (aunque estén vacíos),
+    // así que si llega "team" reemplazamos TODO el pokémon (equipo + PC).
+    if (team !== undefined) {
+      await client.query('DELETE FROM pokemon WHERE participante_id=$1', [req.params.id]);
+      await insertAllPokemon(client, req.params.id, team, pcBoxes || []);
     }
 
-    await conn.commit();
+    await client.query('COMMIT');
     res.json({ ok: true });
   } catch (e) {
-    await conn.rollback();
+    await client.query('ROLLBACK');
     res.status(500).json({ error: e.message });
   } finally {
-    conn.release();
+    client.release();
   }
 });
 
@@ -192,23 +207,43 @@ app.delete('/api/participantes/:id', async (req, res) => {
   }
 });
 
-// ── Helper: insertar un pokémon ────────────────────────────
-async function insertPokemon(conn, partId, slot, pk) {
+// ── Helper: insertar TODO el pokémon de un participante ─────
+// (equipo + todas las cajas de PC), en una misma transacción.
+async function insertAllPokemon(client, partId, team, pcBoxes) {
+  for (let i = 0; i < team.length && i < 6; i++) {
+    await insertPokemon(client, partId, i, team[i], 'team', null, null);
+  }
+  for (let boxIndex = 0; boxIndex < (pcBoxes || []).length; boxIndex++) {
+    const box = pcBoxes[boxIndex];
+    const boxPokemon = box?.pokemon || [];
+    for (let i = 0; i < boxPokemon.length; i++) {
+      await insertPokemon(client, partId, i, boxPokemon[i], 'pc', box.num ?? boxIndex, box.name || null);
+    }
+  }
+}
+
+// ── Helper: insertar un pokémon (equipo o PC) ──────────────
+async function insertPokemon(client, partId, slot, pk, ubicacion, pcBoxIndex, pcBoxNombre) {
   if (!pk || !pk.species) return;
-  await conn.execute(`
+  await client.query(`
     INSERT INTO pokemon (
-      participante_id, slot, especie, mote, nivel, shiny, pokeball, objeto, habilidad,
+      participante_id, ubicacion, slot, pc_box_index, pc_box_nombre,
+      especie, mote, nivel, shiny, pokeball, objeto, habilidad,
       ps, ps_max, ataque, defensa, sp_ataque, sp_defensa, velocidad,
       iv_hp, iv_ataque, iv_defensa, iv_sp_ataque, iv_sp_defensa, iv_velocidad,
       ev_hp, ev_ataque, ev_defensa, ev_sp_ataque, ev_sp_defensa, ev_velocidad,
-      naturaleza, felicidad, movimiento_1, movimiento_2, movimiento_3, movimiento_4
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      naturaleza, felicidad, movimiento_1, movimiento_2, movimiento_3, movimiento_4,
+      dead, stolen, stolen_by, stolen_at, blindado
+    ) VALUES (
+      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,
+      $23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40,$41,$42
+    )`,
     [
-      partId, slot,
+      partId, ubicacion, slot, pcBoxIndex, pcBoxNombre,
       pk.species || pk.especie,
       pk.nickname || pk.mote || null,
       pk.level   || pk.nivel || 1,
-      pk.shiny   ? 1 : 0,
+      !!pk.shiny,
       pk.pokeball || null,
       pk.item    || pk.objeto || null,
       pk.ability || pk.habilidad || null,
@@ -236,6 +271,11 @@ async function insertPokemon(conn, partId, slot, pk) {
       (pk.moves && pk.moves[1] && pk.moves[1].name) || pk.movimiento_2 || null,
       (pk.moves && pk.moves[2] && pk.moves[2].name) || pk.movimiento_3 || null,
       (pk.moves && pk.moves[3] && pk.moves[3].name) || pk.movimiento_4 || null,
+      !!pk.dead,
+      !!pk.stolen,
+      pk.stolenBy || null,
+      pk.stolenAt || null,
+      !!pk.blindado,
     ]
   );
 }
@@ -246,8 +286,8 @@ async function insertPokemon(conn, partId, slot, pk) {
 
 app.get('/api/torneo', async (req, res) => {
   try {
-    const [t] = await query('SELECT * FROM torneo WHERE id=1');
-    res.json(t || {});
+    const rows = await query('SELECT * FROM torneo WHERE id=1');
+    res.json(rows[0] || {});
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -283,8 +323,8 @@ app.post('/api/anuncios', async (req, res) => {
   const { emoji = '📢', mensaje } = req.body;
   if (!mensaje) return res.status(400).json({ error: 'mensaje requerido' });
   try {
-    const r = await query('INSERT INTO anuncios (emoji, mensaje) VALUES (?,?)', [emoji, mensaje]);
-    res.json({ ok: true, id: r.insertId });
+    const rows = await query('INSERT INTO anuncios (emoji, mensaje) VALUES (?,?) RETURNING id', [emoji, mensaje]);
+    res.json({ ok: true, id: rows[0].id });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -301,7 +341,7 @@ app.delete('/api/anuncios/:id', async (req, res) => {
 
 // ── Arrancar ───────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`\n🎮 Deadsafio 3 API arrancada`);
+  console.log(`\n🎮 Deadsafio 3 API arrancada (Postgres / Neon)`);
   console.log(`   http://localhost:${PORT}/api/health\n`);
-  console.log(`   DB: ${DB_CONFIG.user}@${DB_CONFIG.host}:${DB_CONFIG.port}/${DB_CONFIG.database}`);
+  console.log(`   DB: ${DATABASE_URL ? DATABASE_URL.replace(/:[^:@]+@/, ':****@') : `${DB_CONFIG.user}@${DB_CONFIG.host}:${DB_CONFIG.port}/${DB_CONFIG.database}`}`);
 });
