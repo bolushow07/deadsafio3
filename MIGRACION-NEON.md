@@ -1,5 +1,17 @@
 # Migración de MySQL (Railway) a Postgres (Neon)
 
+## v3 — Historial de ataques recibidos
+
+Añade una tabla nueva, `ataques_recibidos`, que guarda quién te ha atacado
+(Robas un Pokémon / Matas un Pokémon / Profanatumbas), con qué Pokémon y
+cuándo, para que las cartas **Escudo real** y **Reviertefectos** puedan
+revertir uno de esos ataques desde cualquier dispositivo (antes esto solo
+vivía en el navegador de cada uno).
+
+Si vienes de la v2, solo tienes que volver a ejecutar `schema.sql` — la
+tabla se crea con `CREATE TABLE IF NOT EXISTS`, así que no borra nada de lo
+que ya tuvieras.
+
 ## v2 — Ya guarda todo lo nuevo
 
 Esta versión, además del cambio MySQL → Postgres, amplía el esquema para
@@ -59,4 +71,3 @@ así que puedes volver a ejecutarlo sin miedo a perder lo que ya tuvieras.
 ## Si ya tenías datos en MySQL
 
 Este cambio crea las tablas vacías en Neon; no migra datos automáticamente (MySQL → Postgres no es un simple volcado, los tipos no son 1:1). Si tienes participantes reales que quieres conservar, dime y te preparo un script de migración de datos aparte.
-
