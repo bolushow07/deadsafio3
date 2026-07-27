@@ -97,6 +97,10 @@ app.get('/api/participantes', async (req, res) => {
         'SELECT * FROM cartas WHERE participante_id = ? ORDER BY creado_en',
         [p.id]
       );
+      p.ataques = await query(
+        'SELECT * FROM ataques_recibidos WHERE participante_id = ? ORDER BY creado_en',
+        [p.id]
+      );
     }
 
     res.json(parts);
@@ -113,6 +117,7 @@ app.get('/api/participantes/:id', async (req, res) => {
     if (!p) return res.status(404).json({ error: 'No encontrado' });
     p.pokemon = await query('SELECT * FROM pokemon WHERE participante_id = ? ORDER BY ubicacion, pc_box_index, slot', [p.id]);
     p.cartas  = await query('SELECT * FROM cartas WHERE participante_id = ? ORDER BY creado_en', [p.id]);
+    p.ataques = await query('SELECT * FROM ataques_recibidos WHERE participante_id = ? ORDER BY creado_en', [p.id]);
     res.json(p);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -124,7 +129,7 @@ app.post('/api/participantes', async (req, res) => {
   const {
     nombre, emoji = '💀', estado = 'activo', num,
     badges = 0, deathCount = 0, royalShield = false,
-    team = [], pcBoxes = [], cartas = [],
+    team = [], pcBoxes = [], cartas = [], attacksReceived = [],
   } = req.body;
   if (!nombre) return res.status(400).json({ error: 'nombre requerido' });
 
@@ -140,6 +145,7 @@ app.post('/api/participantes', async (req, res) => {
     const partId = insertPart.rows[0].id;
 
     await insertAllPokemon(client, partId, team, pcBoxes);
+    await insertAllAtaques(client, partId, attacksReceived);
 
     for (const carta of cartas) {
       await client.query(
@@ -160,7 +166,7 @@ app.post('/api/participantes', async (req, res) => {
 
 // PUT /api/participantes/:id — actualizar datos + equipo + PC completos
 app.put('/api/participantes/:id', async (req, res) => {
-  const { nombre, emoji, estado, num, badges, deathCount, royalShield, team, pcBoxes } = req.body;
+  const { nombre, emoji, estado, num, badges, deathCount, royalShield, team, pcBoxes, attacksReceived } = req.body;
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -185,6 +191,13 @@ app.put('/api/participantes/:id', async (req, res) => {
     if (team !== undefined) {
       await client.query('DELETE FROM pokemon WHERE participante_id=$1', [req.params.id]);
       await insertAllPokemon(client, req.params.id, team, pcBoxes || []);
+    }
+
+    // El cliente manda SIEMPRE el array completo de ataques recibidos
+    // (con los ya revertidos incluidos), así que reemplazamos entero.
+    if (attacksReceived !== undefined) {
+      await client.query('DELETE FROM ataques_recibidos WHERE participante_id=$1', [req.params.id]);
+      await insertAllAtaques(client, req.params.id, attacksReceived);
     }
 
     await client.query('COMMIT');
@@ -219,6 +232,24 @@ async function insertAllPokemon(client, partId, team, pcBoxes) {
     for (let i = 0; i < boxPokemon.length; i++) {
       await insertPokemon(client, partId, i, boxPokemon[i], 'pc', box.num ?? boxIndex, box.name || null);
     }
+  }
+}
+
+// ── Helper: insertar el historial de ataques recibidos ──────
+async function insertAllAtaques(client, partId, attacksReceived) {
+  for (const a of (attacksReceived || [])) {
+    if (!a) continue;
+    await client.query(
+      `INSERT INTO ataques_recibidos (
+         client_id, participante_id, carta, atacante, pokemon_nombre,
+         efecto, ubicacion, pc_box_index, pokemon_index, revertido, creado_en
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+      [
+        a.id || null, partId, a.card || null, a.attacker || null, a.pokemonName || null,
+        a.effect || null, a.location || null, a.boxIndex ?? null, a.pokemonIndex ?? null,
+        !!a.reverted, a.timestamp || new Date().toISOString(),
+      ]
+    );
   }
 }
 
