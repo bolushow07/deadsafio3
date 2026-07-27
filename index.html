@@ -630,6 +630,73 @@
     transition: opacity 0.3s;
   }
 
+  /* Puerta de contraseña para abrir el sobre */
+  .envelope-code-gate {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.7rem;
+    width: 100%;
+    max-width: 340px;
+    padding: 1.4rem 1.2rem;
+    border: 1px solid rgba(212,175,55,0.3);
+    border-radius: 10px;
+    background: rgba(16,16,40,0.6);
+  }
+  .envelope-code-label {
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    color: rgba(232,232,255,0.65);
+    text-align: center;
+  }
+  .envelope-code-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    width: 100%;
+  }
+  .envelope-code-input {
+    flex: 1;
+    min-width: 0;
+    background: rgba(10,10,30,0.8);
+    border: 1px solid rgba(90,90,220,0.3);
+    border-radius: 4px;
+    padding: 0.6rem 0.7rem;
+    color: var(--cream);
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .envelope-code-input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px rgba(212,175,55,0.15);
+  }
+  .envelope-code-input::placeholder { color: rgba(232,232,255,0.2); }
+  .envelope-code-btn {
+    flex-shrink: 0;
+    border: 1px solid var(--gold);
+    border-radius: 4px;
+    background: rgba(212,175,55,0.12);
+    color: var(--gold-light);
+    padding: 0 1rem;
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .envelope-code-btn:hover { background: rgba(212,175,55,0.28); transform: translateY(-1px); }
+  .envelope-code-msg {
+    font-size: 0.75rem;
+    min-height: 1em;
+    letter-spacing: 0.03em;
+    text-align: center;
+  }
+  .envelope-code-msg.err { color: var(--blood-bright); }
+  .envelope-code-msg.ok  { color: #4ade80; }
+
   /* Contenedor de cartas de recompensa */
   .rewards-container {
     display: flex;
@@ -2851,12 +2918,20 @@
     <button class="modal-close" onclick="closeModal('modal-envelope')">✕</button>
     <div class="modal-title">✉️ El Sobre</div>
     <div class="envelope-scene">
-      <div class="envelope-wrap" id="envelope" onclick="openEnvelope()">
+      <div class="envelope-code-gate" id="envelope-code-gate">
+        <p class="envelope-code-label">🔒 Introduce la contraseña para abrir el sobre</p>
+        <div class="envelope-code-row">
+          <input type="text" id="envelope-code-input" class="envelope-code-input" placeholder="Contraseña…" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();submitEnvelopeCode();}">
+          <button type="button" class="envelope-code-btn" onclick="submitEnvelopeCode()">Desbloquear</button>
+        </div>
+        <p class="envelope-code-msg" id="envelope-code-msg"></p>
+      </div>
+      <div class="envelope-wrap" id="envelope" onclick="openEnvelope()" style="display:none;">
         <div class="env-body"></div>
         <div class="env-seal">🔴</div>
         <div class="env-flap"></div>
       </div>
-      <p class="envelope-hint" id="envelope-hint">Haz clic en el sobre para abrirlo</p>
+      <p class="envelope-hint" id="envelope-hint" style="display:none;">Haz clic en el sobre para abrirlo</p>
       <!-- Contenedor de cartas de recompensa -->
       <div class="rewards-container" id="rewards-container"></div>
       <p class="reveal-text" id="reveal-text">¡Recompensas reveladas!</p>
@@ -2919,7 +2994,16 @@
     YAMASK:{1:['Galar','yamask-galar']}, STUNFISK:{1:['Galar','stunfisk-galar']},
 
     WOOPER:{1:['Paldea','wooper-paldea']},
-    TAUROS:{1:['Paldea (Combate)','tauros-paldea-combat'],2:['Paldea (Ardiente)','tauros-paldea-blaze'],3:['Paldea (Acuática)','tauros-paldea-aqua']}
+    TAUROS:{1:['Paldea (Combate)','tauros-paldea-combat'],2:['Paldea (Ardiente)','tauros-paldea-blaze'],3:['Paldea (Acuática)','tauros-paldea-aqua']},
+
+    GROWLITHE:{1:['Hisui','growlithe-hisui']}, ARCANINE:{1:['Hisui','arcanine-hisui']},
+    VOLTORB:{1:['Hisui','voltorb-hisui']}, ELECTRODE:{1:['Hisui','electrode-hisui']},
+    TYPHLOSION:{1:['Hisui','typhlosion-hisui']}, QWILFISH:{1:['Hisui','qwilfish-hisui']},
+    SNEASEL:{1:['Hisui','sneasel-hisui']}, SAMUROTT:{1:['Hisui','samurott-hisui']},
+    LILLIGANT:{1:['Hisui','lilligant-hisui']}, ZORUA:{1:['Hisui','zorua-hisui']},
+    ZOROARK:{1:['Hisui','zoroark-hisui']}, BRAVIARY:{1:['Hisui','braviary-hisui']},
+    SLIGGOO:{1:['Hisui','sliggoo-hisui']}, GOODRA:{1:['Hisui','goodra-hisui']},
+    AVALUGG:{1:['Hisui','avalugg-hisui']}, DECIDUEYE:{1:['Hisui','decidueye-hisui']}
   };
 
   function regionalFormInfo(species, form) {
@@ -2963,11 +3047,11 @@
     { emoji: '😇',  label: 'Legendaria', value: 'Revivir un Pokémon',            rarity: 'legendary' },
     { emoji: '↩️',  label: 'Épica',      value: 'Rollback',                      rarity: 'epic'      },
     { emoji: '🔒',  label: 'Épica',      value: 'Blindado',                      rarity: 'epic'      },
-    { emoji: '🎗',  label: 'Épica',      value: 'Profanatumbas',                 rarity: 'epic'      },
+    { emoji: '🎗',  label: 'Legendaria', value: 'Profanatumbas',                 rarity: 'legendary' },
     { emoji: '💀',  label: 'Legendaria', value: 'Matas un Pokémon',              rarity: 'legendary' },
     { emoji: '🔙​',  label: 'Legendaria', value: 'Reviertefectos',              rarity: 'legendary' },
     { emoji: '👋​', label: 'Rara',       value: 'Skipeo',                      rarity: 'rare'      },
-    { emoji: '🧬​',  label: 'Legendaria', value: 'Equipo espejo',              rarity: 'legendary' },
+    { emoji: '🛡️',  label: 'Épica',       value: 'Escudo real',                  rarity: 'epic'      },
   ];
 
   // Pesos por rareza: common 50%, rare 25%, epic 20%, legendary 5%
@@ -2984,6 +3068,14 @@
 
     // 2) Filtrar cartas de esa rareza y elegir una al azar (con repetición)
     const pool = recompensas.filter(r => r.rarity === rarity);
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  // Igual que drawCard() pero forzando una rareza concreta (p.ej. contraseñas
+  // especiales como FELIZCUMPLEAÑOS que garantizan legendaria).
+  function drawCardForcedRarity(rarity) {
+    const pool = recompensas.filter(r => r.rarity === rarity);
+    if (!pool.length) return drawCard();
     return pool[Math.floor(Math.random() * pool.length)];
   }
 
@@ -3043,11 +3135,15 @@
     }
     const env = document.getElementById('envelope');
     if (!isRollback && env.classList.contains('opened')) return;
+    if (!isRollback && envelopeSobresRemaining <= 0) return; // seguridad: sin código válido no se puede abrir
 
     env.classList.add('opened');
     document.getElementById('envelope-hint').style.opacity = '0';
 
-    const chosen = [drawCard(), drawCard(), drawCard()];
+    if (!isRollback) envelopeSobresRemaining -= 1;
+
+    const draw = () => envelopeForceRarity ? drawCardForcedRarity(envelopeForceRarity) : drawCard();
+    const chosen = Array.from({ length: envelopeCardCount }, draw);
 
     const container = document.getElementById('rewards-container');
     container.innerHTML = '';
@@ -3061,7 +3157,7 @@
     addCardsToCollection(toSave);
     allCollectedCards.push(...toSave);
 
-    const totalDelay = (0.15 + 2 * 0.18 + 0.56) * 1000 + 300;
+    const totalDelay = (0.15 + Math.max(0, envelopeCardCount - 1) * 0.18 + 0.56) * 1000 + 300;
 
     setTimeout(() => {
       const allNada = chosen.every(c => c.value === 'Nada');
@@ -3115,6 +3211,7 @@
     if (hasRollback()) {
       showRollbackButton(container, allCollectedCards);
     }
+    offerNextEnvelopeIfAny(container);
   }
 
   function showRollbackButton(container, previousCards) {
@@ -3229,6 +3326,7 @@
         rt.textContent = `✅ ¡${chosen.value}!`;
         rt.classList.add('show');
         if (hasRollback()) showRollbackButton(container, allCollectedCards);
+        offerNextEnvelopeIfAny(container);
       }, 900);
     }
   }
@@ -3236,11 +3334,158 @@
   function resetEnvelope() {
     const env = document.getElementById('envelope');
     env.classList.remove('opened');
-    document.getElementById('envelope-hint').style.opacity = '1';
     document.getElementById('rewards-container').innerHTML = '';
     const rt = document.getElementById('reveal-text');
     rt.classList.remove('show');
     rt.textContent = '¡Recompensas reveladas!';
+
+    const gate = document.getElementById('envelope-code-gate');
+    const hint = document.getElementById('envelope-hint');
+
+    if (envelopeSobresRemaining > 0) {
+      // Ya se validó una contraseña con sobres pendientes: no volver a pedirla.
+      gate.style.display = 'none';
+      env.style.display = '';
+      hint.style.display = '';
+      hint.style.opacity = '1';
+      const nextNum = envelopeSobresTotal - envelopeSobresRemaining + 1;
+      hint.textContent = envelopeSobresTotal > 1
+        ? `Sobre ${nextNum} de ${envelopeSobresTotal} — haz clic para abrirlo`
+        : 'Haz clic en el sobre para abrirlo';
+    } else {
+      env.style.display = 'none';
+      hint.style.display = 'none';
+      gate.style.display = '';
+      const codeInput = document.getElementById('envelope-code-input');
+      if (codeInput) codeInput.value = '';
+      const codeMsg = document.getElementById('envelope-code-msg');
+      if (codeMsg) { codeMsg.textContent = ''; codeMsg.className = 'envelope-code-msg'; }
+    }
+  }
+
+  // ── Sistema de contraseñas para abrir sobres ─────────────────────────────
+  // 11 contraseñas dan derecho a 1 sobre; 3 contraseñas especiales dan 3 sobres.
+  // Cada contraseña es de un solo uso (se marca como gastada al validarse).
+  const ENVELOPE_CODES = [
+    { code: 'CAMPEONESDELMUNDO', sobres: 1 },
+    { code: 'DIA3ENDEADSAFIO3',  sobres: 1 },
+    { code: 'RIMAMECINCO',       sobres: 1 },
+    { code: 'DYPMEJORPOKEANI',   sobres: 1 },
+    { code: 'DOSCIFRAS',         sobres: 1 },
+    { code: 'DEADSAFIO3',        sobres: 3 },
+    { code: 'MITADDELD3',        sobres: 3 },
+    { code: 'ULTIMOSSOBRES',     sobres: 3 },
+    { code: 'FELIZCUMPLEAÑOS',   sobres: 1, cardCount: 1, forceRarity: 'legendary' },
+  ];
+
+  let envelopeSobresTotal = 1;
+  let envelopeSobresRemaining = 0;
+  let envelopeCardCount = 3;
+  let envelopeForceRarity = null;
+
+  function getUsedEnvelopeCodes() {
+    try { return JSON.parse(localStorage.getItem('ds3-used-envelope-codes') || '[]'); }
+    catch { return []; }
+  }
+  function markEnvelopeCodeUsed(code) {
+    const used = getUsedEnvelopeCodes();
+    used.push(code.toUpperCase());
+    localStorage.setItem('ds3-used-envelope-codes', JSON.stringify(used));
+  }
+
+  function submitEnvelopeCode() {
+    if (!sessionStorage.getItem('ds3-session')) {
+      openModal('modal-auth');
+      return;
+    }
+
+    const input = document.getElementById('envelope-code-input');
+    const msg = document.getElementById('envelope-code-msg');
+    const raw = (input.value || '').trim().toUpperCase().replace(/\s+/g, '');
+
+    if (!raw) {
+      msg.textContent = 'Introduce una contraseña.';
+      msg.className = 'envelope-code-msg err';
+      return;
+    }
+
+    const match = ENVELOPE_CODES.find(c => c.code === raw);
+    if (!match) {
+      msg.textContent = '❌ Contraseña incorrecta.';
+      msg.className = 'envelope-code-msg err';
+      return;
+    }
+
+    const used = getUsedEnvelopeCodes();
+    if (used.includes(match.code)) {
+      msg.textContent = '❌ Esa contraseña ya ha sido usada.';
+      msg.className = 'envelope-code-msg err';
+      return;
+    }
+
+    markEnvelopeCodeUsed(match.code);
+    envelopeSobresTotal = match.sobres;
+    envelopeSobresRemaining = match.sobres;
+    envelopeCardCount = match.cardCount || 3;
+    envelopeForceRarity = match.forceRarity || null;
+
+    if (envelopeForceRarity) {
+      msg.textContent = `🎉 ¡Contraseña de cumpleaños! Sobre con 1 carta ${envelopeForceRarity === 'legendary' ? 'legendaria' : envelopeForceRarity} garantizada.`;
+    } else {
+      msg.textContent = match.sobres > 1 ? `✨ ¡Contraseña especial! ${match.sobres} sobres desbloqueados.` : '✅ Sobre desbloqueado.';
+    }
+    msg.className = 'envelope-code-msg ok';
+
+    document.getElementById('envelope-code-gate').style.display = 'none';
+    const env = document.getElementById('envelope');
+    const hint = document.getElementById('envelope-hint');
+    env.style.display = '';
+    hint.style.display = '';
+    hint.style.opacity = '1';
+    hint.textContent = match.sobres > 1
+      ? `Sobre 1 de ${match.sobres} — haz clic para abrirlo`
+      : 'Haz clic en el sobre para abrirlo';
+    input.value = '';
+  }
+
+  // Tras revelar un sobre, si quedan sobres pendientes de la misma contraseña,
+  // ofrece un botón para preparar y abrir el siguiente.
+  function offerNextEnvelopeIfAny(container) {
+    if (envelopeSobresRemaining <= 0) return;
+
+    const btn = document.createElement('button');
+    btn.id = 'next-envelope-btn';
+    btn.style.cssText = `
+      display:flex;align-items:center;gap:0.5rem;
+      margin:0.8rem auto 0;
+      background:rgba(20,50,20,0.95);
+      border:1.5px solid #4ade80;
+      border-radius:6px;
+      padding:0.6rem 1.2rem;
+      cursor:pointer;
+      color:#e8e8ff;
+      font-family:"Oswald",sans-serif;
+      font-size:0.88rem;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      transition:transform 0.15s,box-shadow 0.2s;
+      box-shadow:0 0 10px rgba(74,222,128,0.3);
+    `;
+    const nextNum = envelopeSobresTotal - envelopeSobresRemaining + 1;
+    btn.innerHTML = `<span style="font-size:1.2rem">✉️</span> Abrir sobre ${nextNum} de ${envelopeSobresTotal}`;
+    btn.onmouseover = () => { btn.style.transform = 'translateY(-2px)'; btn.style.boxShadow = '0 0 18px rgba(74,222,128,0.55)'; };
+    btn.onmouseleave = () => { btn.style.transform = ''; btn.style.boxShadow = '0 0 10px rgba(74,222,128,0.3)'; };
+    btn.onclick = () => {
+      const env = document.getElementById('envelope');
+      env.classList.remove('opened');
+      document.getElementById('rewards-container').innerHTML = '';
+      const rt = document.getElementById('reveal-text');
+      rt.classList.remove('show');
+      const hint = document.getElementById('envelope-hint');
+      hint.style.opacity = '1';
+      hint.textContent = `Sobre ${nextNum} de ${envelopeSobresTotal} — haz clic para abrirlo`;
+    };
+    container.appendChild(btn);
   }
 
   // ── Colección de cartas ─────────────────────────────────────────────────────
@@ -3875,6 +4120,7 @@
     { user: 'Jonny',     pass: 'FandeCarvajal',  emoji: '🦅' },
     { user: 'Visturin',  pass: 'ciGalaAcre',     emoji: '🔥' },
     { user: 'MaVeMu',    pass: 'RitcherMain',    emoji: '⚔️' },
+    { user: 'Vaynilo',   pass: 'SubdelRich',     emoji: '🌊' },
     { user: 'Prueba',    pass: 'Prueba#2026',    emoji: '🧪' },
   ];
 
@@ -3898,7 +4144,7 @@
   // ── RANKING DE MUERTES ────────────────────────────────────────────────────
   // Las 12 cuentas de jugadores (admin y Prueba quedan fuera del ranking).
   // El "modo" de cada jugador determina el filtro Radical / Normal.
-  const RADICAL_USERS = ['Bolushow', 'Nimiel', 'Fire', 'ElNestor', 'Jonny', 'Visturin', 'MaVeMu'];
+  const RADICAL_USERS = ['Bolushow', 'Nimiel', 'Fire', 'ElNestor', 'Jonny', 'Visturin', 'MaVeMu', 'Vaynilo'];
 
   function getRankingAccounts() {
     return FIXED_ACCOUNTS.filter(acc => acc.user !== 'Prueba');
@@ -5751,8 +5997,10 @@ mpHighlight(0);
   }
 
   // Convierte el formato de la BD al formato interno del HTML
-  function dbParticipantToUI(p) {
-    const team = (p.pokemon || []).map(pk => ({
+  // Convierte una fila de la tabla "pokemon" al formato interno del HTML.
+  // Se usa tanto para el equipo como para los pokémon de las cajas de PC.
+  function dbRowToPokemon(pk) {
+    return {
       id:        speciesNameToId(pk.especie) || 0,
       nickname:  pk.mote || null,
       name:      pk.mote || (POKEMON_NAMES && POKEMON_NAMES[pk.especie]) || pk.especie,
@@ -5760,7 +6008,11 @@ mpHighlight(0);
       form:      Number(pk.forma ?? pk.form ?? 0) || 0,
       level:     pk.nivel,
       shiny:     !!pk.shiny,
-      dead:      !!(pk.dead ?? pk.muerto),
+      dead:      !!pk.dead,
+      stolen:    !!pk.stolen,
+      stolenBy:  pk.stolen_by || null,
+      stolenAt:  pk.stolen_at || null,
+      blindado:  !!pk.blindado,
       gender:    pk.genero || '?',
       nature:    pk.naturaleza,
       ability:   pk.habilidad,
@@ -5780,16 +6032,44 @@ mpHighlight(0);
              'Sp.Atk': pk.ev_sp_ataque, 'Sp.Def': pk.ev_sp_defensa, Speed: pk.ev_velocidad },
       moves: [pk.movimiento_1, pk.movimiento_2, pk.movimiento_3, pk.movimiento_4]
               .filter(Boolean).map(n => ({ name: n, pp: '?' })),
-    }));
+    };
+  }
+
+  function dbParticipantToUI(p) {
+    const rows = p.pokemon || [];
+
+    const team = rows
+      .filter(pk => (pk.ubicacion || 'team') === 'team')
+      .map(dbRowToPokemon);
+
+    // Reagrupar los pokémon de PC por caja (pc_box_index), conservando su nombre.
+    const pcRows = rows.filter(pk => pk.ubicacion === 'pc');
+    const boxMap = new Map();
+    pcRows.forEach(pk => {
+      const idx = pk.pc_box_index ?? 0;
+      if (!boxMap.has(idx)) boxMap.set(idx, { name: pk.pc_box_nombre || `Caja ${idx + 1}`, num: idx, pokemon: [] });
+      boxMap.get(idx).pokemon.push(dbRowToPokemon(pk));
+    });
+    const pcBoxes = [...boxMap.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([, box]) => box);
+
+    // "box" es el listado plano de todo lo que hay en la PC (mismas
+    // referencias que dentro de pcBoxes, igual que hace el parseo de saves).
+    const box = pcBoxes.flatMap(b => b.pokemon);
+
     return {
-      _dbId:   p.id,
-      name:    p.nombre,
-      emoji:   p.emoji || '💀',
-      status:  p.estado || 'activo',
-      num:     p.num,
+      _dbId:       p.id,
+      name:        p.nombre,
+      emoji:       p.emoji || '💀',
+      status:      p.estado || 'activo',
+      num:         p.num,
+      badges:      p.badges || 0,
+      deathCount:  p.death_count || 0,
+      royalShield: !!p.royal_shield,
       team,
-      box:     [],
-      pcBoxes: [],
+      box,
+      pcBoxes,
       cartas:  p.cartas || [],
       pokemon: team[0]?.id || 1,
     };
@@ -5814,8 +6094,11 @@ mpHighlight(0);
       emoji:  uiParticipant.emoji || '💀',
       estado: uiParticipant.status || 'activo',
       num:    uiParticipant.num,
-      team:   uiParticipant.team || [],
-      box:    uiParticipant.box || [],
+      badges:      uiParticipant.badges || 0,
+      deathCount:  uiParticipant.deathCount || 0,
+      royalShield: !!uiParticipant.royalShield,
+      team:    uiParticipant.team || [],
+      box:     uiParticipant.box || [],
       pcBoxes: uiParticipant.pcBoxes || [],
     };
     try {
@@ -5878,6 +6161,19 @@ mpHighlight(0);
     const user = currentSessionUser();
     if (!user) return false;
     return (participant.name || '').trim().toLowerCase() === user.trim().toLowerCase();
+  }
+
+  // Si el participante tiene un Escudo real activo, lo consume (una sola vez)
+  // y devuelve true para que la carta de ataque que lo intentó no tenga efecto.
+  // El escudo NO protege de cartas de categoría Legendaria: solo bloquea
+  // ataques de categoría inferior (Épica, Rara o Común).
+  function consumeRoyalShieldIfActive(participant, attackerRarity) {
+    if (attackerRarity === 'legendary') return false;
+    if (participant && participant.royalShield) {
+      participant.royalShield = false;
+      return true;
+    }
+    return false;
   }
 
   function updateCollectionPermissions() {
@@ -6024,6 +6320,7 @@ mpHighlight(0);
       return;
     }
 
+    // Robas un Pokémon es Legendaria: el Escudo real no la bloquea.
     pk.stolen = true;
     pk.stolenBy = thief;
     pk.stolenAt = new Date().toISOString();
@@ -6050,18 +6347,20 @@ mpHighlight(0);
   }
 
   // ── USO DE CARTA: PROFANATUMBAS (robar un Pokémon marcado como muerto) ──
+  // Profanatumbas es Legendaria: puede robar incluso Pokémon BLINDADOS,
+  // revirtiendo esa protección (solo se excluyen los ya robados).
   function allDeadPokemon(participant) {
     const result = [];
     (participant.team || []).forEach((pk, pokemonIndex) => {
-      if (pk && pk.dead && !pk.stolen && !pk.blindado) result.push({ pk, location: 'team', boxIndex: -1, pokemonIndex });
+      if (pk && pk.dead && !pk.stolen) result.push({ pk, location: 'team', boxIndex: -1, pokemonIndex });
     });
     (participant.pcBoxes || []).forEach((box, boxIndex) => {
       (box?.pokemon || []).forEach((pk, pokemonIndex) => {
-        if (pk && pk.dead && !pk.stolen && !pk.blindado) result.push({ pk, location: 'pc', boxIndex, pokemonIndex });
+        if (pk && pk.dead && !pk.stolen) result.push({ pk, location: 'pc', boxIndex, pokemonIndex });
       });
     });
     (participant.box || []).forEach((pk, pokemonIndex) => {
-      if (pk && pk.dead && !pk.stolen && !pk.blindado) result.push({ pk, location: 'box', boxIndex: -1, pokemonIndex });
+      if (pk && pk.dead && !pk.stolen) result.push({ pk, location: 'box', boxIndex: -1, pokemonIndex });
     });
     return result;
   }
@@ -6091,7 +6390,7 @@ mpHighlight(0);
 
     closeModal('modal-collection');
     document.getElementById('steal-modal-title').textContent = '🎗 Elige una partida';
-    document.getElementById('steal-help').textContent = 'Después podrás elegir uno de sus Pokémon marcados como muertos. Los que ya están robados no pueden seleccionarse otra vez.';
+    document.getElementById('steal-help').textContent = 'Después podrás elegir uno de sus Pokémon marcados como muertos (incluso blindados: al ser Legendaria, Profanatumbas ignora el Blindado y el Escudo real). Los que ya están robados no pueden seleccionarse otra vez.';
     const content = document.getElementById('steal-content');
     content.innerHTML = '<div class="steal-list"></div>';
     const list = content.firstElementChild;
@@ -6138,7 +6437,7 @@ mpHighlight(0);
       const name = pk.nickname || pokemonDisplaySpecies(pk) || pk.species || 'Pokémon';
       button.innerHTML = `
         <img src="${pokemonSprite(pk, !!pk.shiny)}" alt="${name}">
-        <span class="steal-choice-name">💀 ${name}</span>
+        <span class="steal-choice-name">💀 ${pk.blindado ? '🔒 ' : ''}${name}</span>
         <span class="steal-choice-sub">Nv. ${pk.level ?? '?'} · ${location === 'team' ? 'Equipo' : 'PC'}</span>
       `;
       button.addEventListener('click', () =>
@@ -6164,21 +6463,19 @@ mpHighlight(0);
       return;
     }
 
-    if (pk.blindado) {
-      alert('Ese Pokémon está BLINDADO y no puede ser robado.');
-      renderProfanatumbasChoices(participantIndex);
-      return;
-    }
-
     const name = pk.nickname || pokemonDisplaySpecies(pk) || pk.species || 'Pokémon';
     const thief = currentSessionUser();
-    if (!confirm(`¿Usar la carta Profanatumbas para robar a ${name} (💀 muerto) de la partida de ${participant.name}?`)) return;
+    if (!confirm(`¿Usar la carta Legendaria Profanatumbas para robar a ${name} (💀 muerto) de la partida de ${participant.name}? Al ser Legendaria, ignora tanto el Blindado como el Escudo real.`)) return;
 
     if (!consumeCollectionCard('Profanatumbas')) {
       alert('La carta ya no está disponible.');
       closeModal('modal-steal-pokemon');
       return;
     }
+
+    // Profanatumbas es Legendaria: consumeRoyalShieldIfActive('legendary')
+    // siempre devuelve false, así que ningún Escudo real puede detenerla.
+    consumeRoyalShieldIfActive(participant, 'legendary');
 
     pk.stolen = true;
     pk.stolenBy = thief;
@@ -6621,6 +6918,7 @@ mpHighlight(0);
       return;
     }
 
+    // Matas un Pokémon es Legendaria: el Escudo real no la bloquea.
     pk.dead = true;
     participant.deathCount = (participant.deathCount || 0) + 1;
 
@@ -6710,8 +7008,52 @@ mpHighlight(0);
     useSelectParticipantOnlyCard('Combate Pokémon', '⚔️', 'Elige la partida contra la que se realizará el combate Pokémon. La carta se consumirá al confirmar.');
   }
 
-  function useEquipoEspejoCard() {
-    useSelectParticipantOnlyCard('Equipo espejo', '🧬', 'Elige la partida cuyo equipo quieres reflejar. La carta se consumirá al confirmar.');
+  // Escudo real: se aplica siempre a tu propia partida y te protege del
+  // efecto de la próxima carta de ataque de categoría inferior a Legendaria
+  // (p.ej. Blindado). Robar, Matar y Profanatumbas son Legendarias y el
+  // escudo NO las bloquea.
+  // que alguien use contra ti. Es de un solo uso.
+  function useEscudoRealCard() {
+    const user = currentSessionUser();
+    if (!user) {
+      closeModal('modal-collection');
+      openModal('modal-auth');
+      return;
+    }
+    const col = loadCollection();
+    if (!col['Escudo real'] || col['Escudo real'].count < 1) {
+      alert('No tienes ninguna carta "Escudo real".');
+      return;
+    }
+
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const own = parts.find(p => isOwnParticipant(p));
+    if (!own) {
+      alert('No se encontró tu partida.');
+      return;
+    }
+
+    if (own.royalShield) {
+      alert('Ya tienes un Escudo real activo. No puedes tener dos a la vez.');
+      return;
+    }
+
+    if (!confirm('¿Usar la carta "Escudo real"? Te protegerá del efecto de la próxima carta de ataque de categoría inferior a Legendaria (por ejemplo Blindado) que usen contra ti. No protege de cartas Legendarias como Robas un Pokémon, Matas un Pokémon o Profanatumbas.')) return;
+
+    if (!consumeCollectionCard('Escudo real')) {
+      alert('La carta ya no está disponible.');
+      return;
+    }
+
+    own.royalShield = true;
+    saveAdminParticipants(parts);
+    if (typeof saveParticipantToDB === 'function') {
+      saveParticipantToDB(own).catch(err => console.warn(err));
+    }
+
+    updateCardBadge(loadCollection());
+    if (typeof renderCollection === 'function') renderCollection();
+    alert('🛡️ Escudo real activado. La próxima carta de ataque de categoría inferior a Legendaria usada contra ti no tendrá efecto.');
   }
 
   // ── USO DE CARTAS DE SOLO CONFIRMACIÓN ──
@@ -6852,16 +7194,16 @@ mpHighlight(0);
             useCombatePokemonCard();
           }
         });
-      } else if (name === 'Equipo espejo') {
+      } else if (name === 'Escudo real') {
         card.classList.add('usable-card');
         card.title = 'Pulsa para usar esta carta';
         card.setAttribute('role', 'button');
         card.setAttribute('tabindex', '0');
-        card.addEventListener('click', useEquipoEspejoCard);
+        card.addEventListener('click', useEscudoRealCard);
         card.addEventListener('keydown', event => {
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
-            useEquipoEspejoCard();
+            useEscudoRealCard();
           }
         });
       } else if (name === 'Captura extra') {
