@@ -3037,15 +3037,15 @@
   const recompensas = [
     { emoji: '💰',  label: 'Legendaria', value: 'Robas un Pokémon',              rarity: 'legendary' },
     { emoji: '🎣',  label: 'Épica',       value: 'Captura extra',                 rarity: 'epic'      },
-    { emoji: '🃏',  label: 'Legendaria', value: '+2 cartas',                     rarity: 'legendary' },
+    { emoji: '🃏',  label: 'Épica',      value: '+2 cartas',                     rarity: 'epic'      },
     { emoji: '😶',  label: 'Común',      value: 'Nada',                          rarity: 'common'    },
-    { emoji: '⚔️',  label: 'Legendaria', value: 'Combate Pokémon',               rarity: 'legendary' },
+    { emoji: '⚔️',  label: 'Rara',       value: 'Combate Pokémon',               rarity: 'rare'      },
     { emoji: '💞',  label: 'Común',      value: 'Escama Corazón',                rarity: 'common'    },
-    { emoji: '⭐',  label: 'Épica',      value: 'Shiny forzado',                 rarity: 'epic'      },
+    { emoji: '⭐',  label: 'Rara',       value: 'Shiny forzado',                 rarity: 'rare'      },
     { emoji: '😇',  label: 'Legendaria', value: 'Revivir un Pokémon',            rarity: 'legendary' },
     { emoji: '↩️',  label: 'Épica',      value: 'Rollback',                      rarity: 'epic'      },
     { emoji: '🔒',  label: 'Épica',      value: 'Blindado',                      rarity: 'epic'      },
-    { emoji: '🎗',  label: 'Legendaria', value: 'Profanatumbas',                 rarity: 'legendary' },
+    { emoji: '🎗',  label: 'Épica',      value: 'Profanatumbas',                 rarity: 'epic'      },
     { emoji: '💀',  label: 'Legendaria', value: 'Matas un Pokémon',              rarity: 'legendary' },
     { emoji: '🔙​',  label: 'Legendaria', value: 'Reviertefectos',              rarity: 'legendary' },
     { emoji: '👋​', label: 'Rara',       value: 'Skipeo',                      rarity: 'rare'      },
@@ -6125,6 +6125,8 @@ mpHighlight(0);
       attacker:     a.atacante,
       pokemonName:  a.pokemon_nombre,
       effect:       a.efecto,
+      applyEffect:  !!a.apply_efecto,
+      ownerName:    a.owner_nombre,
       location:     a.ubicacion,
       boxIndex:     a.pc_box_index,
       pokemonIndex: a.pokemon_index,
@@ -6241,7 +6243,11 @@ mpHighlight(0);
 
   // Registra un ataque recibido en el historial del participante (máx. 10),
   // para que luego pueda revertirlo con Escudo real o Reviertefectos.
-  function logAttackReceived(participant, cardName, pkName, effect, location, boxIndex, pokemonIndex) {
+  // "ownerName" es el dueño del Pokémon afectado (normalmente el mismo
+  // participante, salvo en los contraataques: ver confirmRevertAttack).
+  // "applyEffect" indica si revertir este registro APLICA el efecto (true,
+  // usado en los contraataques) o lo QUITA (false, ataque normal).
+  function logAttackReceived(participant, cardName, pkName, effect, location, boxIndex, pokemonIndex, opts = {}) {
     if (!participant) return;
     if (!Array.isArray(participant.attacksReceived)) participant.attacksReceived = [];
     participant.attacksReceived.push({
@@ -6249,7 +6255,9 @@ mpHighlight(0);
       card: cardName,
       attacker: currentSessionUser() || 'Alguien',
       pokemonName: pkName || null,
-      effect,       // 'stolen' | 'dead'
+      effect,       // 'stolen' | 'dead' | null
+      applyEffect: !!opts.applyEffect,
+      ownerName: opts.ownerName || participant.name,
       location, boxIndex, pokemonIndex,
       timestamp: new Date().toISOString(),
       reverted: false,
@@ -7091,6 +7099,17 @@ mpHighlight(0);
       return;
     }
 
+    // Combate Pokémon queda registrado como ataque recibido, para que quien
+    // lo reciba pueda protegerse con Escudo real (no tiene efecto sobre
+    // ningún Pokémon en concreto, así que no lleva pokemonName/effect).
+    if (cardName === 'Combate Pokémon') {
+      logAttackReceived(participant, cardName, null, null, null, null, null);
+      saveAdminParticipants(parts);
+      if (typeof saveParticipantToDB === 'function') {
+        try { await saveParticipantToDB(participant); } catch (error) { console.warn(error); }
+      }
+    }
+
     updateCardBadge(loadCollection());
     closeModal('modal-steal-pokemon');
     const emoji = recompensas.find(r => r.value === cardName)?.emoji || '🎴';
@@ -7103,14 +7122,17 @@ mpHighlight(0);
   }
 
   // ── USO DE CARTAS: ESCUDO REAL Y REVIERTEFECTOS ──────────────────────────
-  // Ambas funcionan igual: si te han atacado (Robas un Pokémon, Matas un
-  // Pokémon o Profanatumbas), puedes elegir uno de tus últimos ataques
-  // recibidos y revertir su efecto por completo, como si nunca hubiera
-  // pasado. Solo puedes usarlas sobre tu propia partida.
-  function useEscudoRealCard()     { useRevertAttackCard('Escudo real', '🛡️'); }
-  function useRevierteEfectosCard(){ useRevertAttackCard('Reviertefectos', '🔙'); }
+  // Si te han atacado con una carta, puedes elegir uno de tus últimos
+  // ataques recibidos y revertir su efecto por completo, como si nunca
+  // hubiera pasado. Solo puedes usarlas sobre tu propia partida.
+  // Cada carta protege/revierte solo un subconjunto de cartas de ataque:
+  const SHIELDABLE_ATTACK_CARDS  = ['Robas un Pokémon', 'Matas un Pokémon', 'Combate Pokémon', 'Profanatumbas', 'Reviertefectos'];
+  const REVERTIBLE_ATTACK_CARDS  = ['Robas un Pokémon', 'Matas un Pokémon', 'Profanatumbas', 'Reviertefectos'];
 
-  function useRevertAttackCard(cardName, emoji) {
+  function useEscudoRealCard()     { useRevertAttackCard('Escudo real', '🛡️', SHIELDABLE_ATTACK_CARDS); }
+  function useRevierteEfectosCard(){ useRevertAttackCard('Reviertefectos', '🔙', REVERTIBLE_ATTACK_CARDS); }
+
+  function useRevertAttackCard(cardName, emoji, allowedCards) {
     const user = currentSessionUser();
     if (!user) {
       closeModal('modal-collection');
@@ -7131,9 +7153,12 @@ mpHighlight(0);
       return;
     }
 
-    const attacks = (own.attacksReceived || []).filter(a => !a.reverted).slice(-5).reverse();
+    const attacks = (own.attacksReceived || [])
+      .filter(a => !a.reverted && allowedCards.includes(a.card))
+      .slice(-5)
+      .reverse();
     if (!attacks.length) {
-      alert('No has recibido ningún ataque reciente que puedas revertir.');
+      alert(`No has recibido ningún ataque reciente que "${cardName}" pueda revertir.`);
       return;
     }
 
@@ -7169,11 +7194,13 @@ mpHighlight(0);
     const attack = (participant.attacksReceived || []).find(a => a.id === attackId);
     if (!attack || attack.reverted) {
       alert('Ese ataque ya no está disponible.');
-      useRevertAttackCard(cardName, emoji);
+      const allowedCards = cardName === 'Escudo real' ? SHIELDABLE_ATTACK_CARDS : REVERTIBLE_ATTACK_CARDS;
+      useRevertAttackCard(cardName, emoji, allowedCards);
       return;
     }
 
-    if (!confirm(`¿Usar "${cardName}" para revertir el ataque "${attack.card}" de ${attack.attacker} sobre ${attack.pokemonName || 'ese Pokémon'}?`)) return;
+    const verb = attack.applyEffect ? 'reaplicar' : 'revertir';
+    if (!confirm(`¿Usar "${cardName}" para ${verb} el ataque "${attack.card}" de ${attack.attacker} sobre ${attack.pokemonName || 'ese Pokémon'}?`)) return;
 
     if (!consumeCollectionCard(cardName)) {
       alert('La carta ya no está disponible.');
@@ -7181,36 +7208,72 @@ mpHighlight(0);
       return;
     }
 
-    let pk = null;
-    if (attack.location === 'team') pk = participant.team?.[attack.pokemonIndex];
-    else if (attack.location === 'pc') pk = participant.pcBoxes?.[attack.boxIndex]?.pokemon?.[attack.pokemonIndex];
-    else pk = participant.box?.[attack.pokemonIndex];
+    // El Pokémon afectado es siempre el del dueño original (attack.ownerName),
+    // que en los contraataques puede ser distinto de quien recibe este aviso.
+    const ownerName = attack.ownerName || participant.name;
+    const ownerParticipant = parts.find(p => (p.name || '').toLowerCase() === ownerName.toLowerCase()) || participant;
 
-    if (pk) {
-      if (attack.effect === 'stolen') {
-        pk.stolen = false;
-        delete pk.stolenBy;
-        delete pk.stolenAt;
-      } else if (attack.effect === 'dead') {
-        pk.dead = false;
-        // A diferencia de Revivir un Pokémon, esto revierte el ataque por
-        // completo: como si nunca hubiera pasado, así que sí resta la muerte.
-        participant.deathCount = Math.max(0, (participant.deathCount || 0) - 1);
+    let pk = null;
+    if (attack.location === 'team') pk = ownerParticipant.team?.[attack.pokemonIndex];
+    else if (attack.location === 'pc') pk = ownerParticipant.pcBoxes?.[attack.boxIndex]?.pokemon?.[attack.pokemonIndex];
+    else if (attack.location === 'box') pk = ownerParticipant.box?.[attack.pokemonIndex];
+
+    if (pk && attack.effect) {
+      if (attack.applyEffect) {
+        // Contraataque: reaplica el efecto original (como si el ataque
+        // nunca se hubiera revertido).
+        if (attack.effect === 'stolen') {
+          pk.stolen = true;
+          pk.stolenBy = attack.attacker;
+          pk.stolenAt = new Date().toISOString();
+        } else if (attack.effect === 'dead') {
+          pk.dead = true;
+          ownerParticipant.deathCount = (ownerParticipant.deathCount || 0) + 1;
+        }
+      } else {
+        // Ataque normal: quita el efecto, como si nunca hubiera pasado.
+        if (attack.effect === 'stolen') {
+          pk.stolen = false;
+          delete pk.stolenBy;
+          delete pk.stolenAt;
+        } else if (attack.effect === 'dead') {
+          pk.dead = false;
+          ownerParticipant.deathCount = Math.max(0, (ownerParticipant.deathCount || 0) - 1);
+        }
       }
     }
 
     attack.reverted = true;
 
+    // Contraataque: la persona que le lanzó el ataque original ahora tiene
+    // un registro de que se lo han revertido, y puede a su vez revertirlo
+    // de vuelta con su propio Escudo real o Reviertefectos.
+    const attackerParticipant = parts.find(p => (p.name || '').toLowerCase() === (attack.attacker || '').toLowerCase());
+    if (attackerParticipant && attackerParticipant !== ownerParticipant) {
+      logAttackReceived(
+        attackerParticipant, cardName, attack.pokemonName, attack.effect,
+        attack.location, attack.boxIndex, attack.pokemonIndex,
+        { ownerName, applyEffect: !attack.applyEffect }
+      );
+    }
+
     saveAdminParticipants(parts);
     if (typeof saveParticipantToDB === 'function') {
       try { await saveParticipantToDB(participant); } catch (error) { console.warn(error); }
+      if (ownerParticipant !== participant) {
+        try { await saveParticipantToDB(ownerParticipant); } catch (error) { console.warn(error); }
+      }
+      if (attackerParticipant && attackerParticipant !== participant && attackerParticipant !== ownerParticipant) {
+        try { await saveParticipantToDB(attackerParticipant); } catch (error) { console.warn(error); }
+      }
     }
 
     broadcastCardUseNotif(cardName, emoji, `el ataque "${attack.card}" de ${attack.attacker}`);
     renderParticipantsList();
     updateCardBadge(loadCollection());
     closeModal('modal-steal-pokemon');
-    alert(`✅ Se ha revertido el ataque "${attack.card}" de ${attack.attacker}.`);
+    const counterMsg = attackerParticipant ? ` ${attack.attacker} podrá contraatacar con su propio Escudo real o Reviertefectos.` : '';
+    alert(`✅ Se ha ${attack.applyEffect ? 'reaplicado' : 'revertido'} el ataque "${attack.card}" de ${attack.attacker}.${counterMsg}`);
   }
 
   // ── USO DE CARTAS DE SOLO CONFIRMACIÓN ──
