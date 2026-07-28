@@ -5743,17 +5743,28 @@
     part.team = [];
     part.pcBoxes = [];
     part.box = [];
-    part.badges = [];
+    part.badges = 0;
     part.deathCount = 0;
     part.pokemon = 1;
 
     saveAdminParticipants(parts);
+    let dbOk = true;
     if (typeof saveParticipantToDB === 'function') {
-      try { await saveParticipantToDB(part); } catch (error) { console.warn(error); }
+      try {
+        const r = await saveParticipantToDB(part);
+        dbOk = r !== null;
+      } catch (error) {
+        dbOk = false;
+        console.warn(error);
+      }
     }
     renderAdminParticipants();
     renderParticipantsList();
-    showAdminMsg('admin-part-msg', `✅ Datos de ${part.name} borrados. La cuenta sigue existiendo.`, 'ok');
+    if (dbOk) {
+      showAdminMsg('admin-part-msg', `✅ Datos de ${part.name} borrados. La cuenta sigue existiendo.`, 'ok');
+    } else {
+      showAdminMsg('admin-part-msg', `⚠️ Datos de ${part.name} borrados solo en este navegador — no se pudo guardar en la base de datos. En otro dispositivo seguirán apareciendo los datos antiguos.`, 'err');
+    }
   }
 
   function adminToggleStatus(i) {
