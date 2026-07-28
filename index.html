@@ -2520,10 +2520,14 @@
    ══════════════════════════════════════════════════════════════════════ */
 @media (max-width: 640px) {
   /* En móvil, las cartas NUNCA se muestran de forma previa en el botón:
-     hay que pulsar el botón de "Mis Cartas" sí o sí para verlas. */
+     hay que pulsar el botón de "Mis Cartas" sí o sí para verlas.
+     display:none (no solo opacidad) para que además de no verse, el
+     contenedor no ocupe espacio ni bloquee los clics del resto de la
+     página (con flex-wrap y max-width:0 podía estirarse verticalmente
+     por toda la pantalla e interceptar los toques). */
+  .btn-mini-cards,
   #collection-btn.cards-visible .btn-mini-cards {
-    max-width: 0 !important;
-    opacity: 0 !important;
+    display: none !important;
   }
 
   /* Hero */
