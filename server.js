@@ -377,6 +377,76 @@ app.delete('/api/anuncios/:id', async (req, res) => {
   }
 });
 
+// ════════════════════════════════════════════════════════════
+// COLECCIÓN DE CARTAS (por cuenta, no por navegador)
+// ════════════════════════════════════════════════════════════
+
+// GET /api/coleccion/:usuario — cartas y cantidades de esa cuenta
+app.get('/api/coleccion/:usuario', async (req, res) => {
+  try {
+    const rows = await query(
+      'SELECT carta, cantidad FROM colecciones WHERE usuario = ?',
+      [req.params.usuario]
+    );
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// PUT /api/coleccion/:usuario — reemplaza toda la colección de esa cuenta
+app.put('/api/coleccion/:usuario', async (req, res) => {
+  const { cards = [] } = req.body;
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('DELETE FROM colecciones WHERE usuario=$1', [req.params.usuario]);
+    for (const c of cards) {
+      if (!c || !c.carta || !c.cantidad) continue;
+      await client.query(
+        'INSERT INTO colecciones (usuario, carta, cantidad) VALUES ($1,$2,$3)',
+        [req.params.usuario, c.carta, c.cantidad]
+      );
+    }
+    await client.query('COMMIT');
+    res.json({ ok: true });
+  } catch (e) {
+    await client.query('ROLLBACK');
+    res.status(500).json({ error: e.message });
+  } finally {
+    client.release();
+  }
+});
+
+// ════════════════════════════════════════════════════════════
+// CONTRASEÑAS DE SOBRE YA USADAS (de un solo uso de verdad)
+// ════════════════════════════════════════════════════════════
+
+app.get('/api/sobres-usados', async (req, res) => {
+  try {
+    const rows = await query('SELECT codigo, usado_por, usado_en FROM sobres_usados');
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/sobres-usados — marca un código como usado (idempotente:
+// si ya estaba usado, no falla ni lo duplica).
+app.post('/api/sobres-usados', async (req, res) => {
+  const { codigo, usadoPor } = req.body;
+  if (!codigo) return res.status(400).json({ error: 'codigo requerido' });
+  try {
+    await query(
+      'INSERT INTO sobres_usados (codigo, usado_por) VALUES (?,?) ON CONFLICT (codigo) DO NOTHING',
+      [codigo, usadoPor || null]
+    );
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── Arrancar ───────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`\n🎮 Deadsafio 3 API arrancada (Postgres / Neon)`);
