@@ -2519,6 +2519,13 @@
    RESPONSIVE — MÓVIL
    ══════════════════════════════════════════════════════════════════════ */
 @media (max-width: 640px) {
+  /* En móvil, las cartas NUNCA se muestran de forma previa en el botón:
+     hay que pulsar el botón de "Mis Cartas" sí o sí para verlas. */
+  #collection-btn.cards-visible .btn-mini-cards {
+    max-width: 0 !important;
+    opacity: 0 !important;
+  }
+
   /* Hero */
   .main {
     padding: 5.5rem 1.1rem 1.5rem;
@@ -3991,7 +3998,10 @@
   function openModal(id) {
     document.getElementById(id).classList.add('open');
     if (id === 'modal-envelope') resetEnvelope();
-    if (id === 'modal-participants') { renderParticipantsList(); backToList(); }
+    if (id === 'modal-participants') {
+      renderParticipantsList(); backToList();
+      refreshParticipantsFromDB();
+    }
     if (id === 'modal-collection') { renderCollection(); document.getElementById('collection-btn').classList.add('cards-visible'); }
     if (id === 'modal-ranking') { renderRanking(currentRankingFilter); }
     if (id === 'modal-notif') {
@@ -6246,6 +6256,21 @@ mpHighlight(0);
     }
   }
 
+  // Pide los participantes frescos a la BD y refresca la caché local + la
+  // vista si ya está abierta. Se llama al cargar la página Y cada vez que
+  // se abre "Ver Participantes" (antes solo se pedía una vez al cargar,
+  // así que si esa petición fallaba o llegaba tarde —típico en móvil—
+  // el modal se quedaba vacío para siempre hasta recargar la página).
+  async function refreshParticipantsFromDB() {
+    const parts = await loadParticipantsFromDB();
+    if (parts && parts.length > 0) {
+      localStorage.setItem('ds3-admin-participants', JSON.stringify(parts));
+      participants = parts;
+      if (typeof renderParticipantsList === 'function') renderParticipantsList();
+    }
+    return parts;
+  }
+
   async function saveParticipantToDB(uiParticipant) {
     if (!(await apiCheck())) return null;
     const body = {
@@ -6293,15 +6318,7 @@ mpHighlight(0);
   // Llamar al cargar la página
   document.addEventListener('DOMContentLoaded', () => {
     showApiStatus();
-    // Recargar participantes desde DB si está disponible
-    loadParticipantsFromDB().then(parts => {
-      if (parts && parts.length > 0) {
-        // Guardar en localStorage como caché también
-        localStorage.setItem('ds3-admin-participants', JSON.stringify(parts));
-        participants = parts;
-        if (typeof renderParticipantsList === 'function') renderParticipantsList();
-      }
-    }).catch(e => console.warn('No se pudieron cargar los participantes al iniciar:', e));
+    refreshParticipantsFromDB().catch(e => console.warn('No se pudieron cargar los participantes al iniciar:', e));
   });
 
 
