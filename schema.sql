@@ -139,3 +139,24 @@ CREATE INDEX IF NOT EXISTS idx_ataques_participante ON ataques_recibidos(partici
 
 ALTER TABLE ataques_recibidos ADD COLUMN IF NOT EXISTS apply_efecto BOOLEAN DEFAULT FALSE;
 ALTER TABLE ataques_recibidos ADD COLUMN IF NOT EXISTS owner_nombre VARCHAR(255);
+
+-- Colección de cartas de CADA CUENTA (usuario de login), no del navegador.
+-- Antes vivía solo en localStorage bajo una única clave compartida.
+CREATE TABLE IF NOT EXISTS colecciones (
+  id        SERIAL PRIMARY KEY,
+  usuario   VARCHAR(255) NOT NULL,
+  carta     VARCHAR(128) NOT NULL,
+  cantidad  INTEGER DEFAULT 0,
+  UNIQUE (usuario, carta)
+);
+CREATE INDEX IF NOT EXISTS idx_colecciones_usuario ON colecciones(usuario);
+
+-- Contraseñas de sobre ya canjeadas, para que sean de un solo uso de
+-- verdad (antes cada navegador llevaba su propia lista local, así que
+-- una misma contraseña se podía reutilizar desde otro dispositivo).
+CREATE TABLE IF NOT EXISTS sobres_usados (
+  id         SERIAL PRIMARY KEY,
+  codigo     VARCHAR(64) UNIQUE NOT NULL,
+  usado_por  VARCHAR(255),
+  usado_en   TIMESTAMP DEFAULT NOW()
+);
