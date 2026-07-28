@@ -2,10 +2,11 @@
 // DEADSAFIO 3 — API Server (Postgres / Neon)
 // Arranca con: node server.js
 //
-// v2: además del equipo, ahora persiste también PC (pcBoxes),
-// medallas, y las marcas de las cartas por pokémon (muerto,
-// robado, blindado) más el contador de muertes y el Escudo
-// real por participante. Ejecuta schema.sql (v2) antes de usar
+// v3: además del equipo, PC (pcBoxes), medallas, marcas de las
+// cartas (muerto/robado/blindado), contador de muertes y Escudo
+// real, ahora persiste también el historial de ataques recibidos
+// (para Escudo real / Reviertefectos), incluidos los contraataques
+// (ownerName + applyEffect). Ejecuta schema.sql (v3) antes de usar
 // esta versión.
 // ═══════════════════════════════════════════════════════════
 
@@ -80,7 +81,7 @@ app.get('/api/health', async (req, res) => {
 // PARTICIPANTES
 // ════════════════════════════════════════════════════════════
 
-// GET /api/participantes — lista todos con equipo + PC + cartas
+// GET /api/participantes — lista todos con equipo + PC + ataques
 app.get('/api/participantes', async (req, res) => {
   try {
     const parts = await query(`
@@ -109,7 +110,7 @@ app.get('/api/participantes', async (req, res) => {
   }
 });
 
-// GET /api/participantes/:id — uno solo con equipo + PC completos
+// GET /api/participantes/:id — uno solo con equipo + PC + ataques completos
 app.get('/api/participantes/:id', async (req, res) => {
   try {
     const rows = await query('SELECT * FROM participantes WHERE id = ?', [req.params.id]);
@@ -124,7 +125,7 @@ app.get('/api/participantes/:id', async (req, res) => {
   }
 });
 
-// POST /api/participantes — crear nuevo con equipo + PC
+// POST /api/participantes — crear nuevo con equipo + PC + ataques
 app.post('/api/participantes', async (req, res) => {
   const {
     nombre, emoji = '💀', estado = 'activo', num,
@@ -164,7 +165,7 @@ app.post('/api/participantes', async (req, res) => {
   }
 });
 
-// PUT /api/participantes/:id — actualizar datos + equipo + PC completos
+// PUT /api/participantes/:id — actualizar datos + equipo + PC + ataques completos
 app.put('/api/participantes/:id', async (req, res) => {
   const { nombre, emoji, estado, num, badges, deathCount, royalShield, team, pcBoxes, attacksReceived } = req.body;
   const client = await pool.connect();
@@ -194,7 +195,8 @@ app.put('/api/participantes/:id', async (req, res) => {
     }
 
     // El cliente manda SIEMPRE el array completo de ataques recibidos
-    // (con los ya revertidos incluidos), así que reemplazamos entero.
+    // (con los ya revertidos y los contraataques incluidos), así que
+    // reemplazamos entero.
     if (attacksReceived !== undefined) {
       await client.query('DELETE FROM ataques_recibidos WHERE participante_id=$1', [req.params.id]);
       await insertAllAtaques(client, req.params.id, attacksReceived);
@@ -236,18 +238,23 @@ async function insertAllPokemon(client, partId, team, pcBoxes) {
 }
 
 // ── Helper: insertar el historial de ataques recibidos ──────
+// Incluye tanto ataques normales como contraataques (owner_nombre +
+// apply_efecto indican, respectivamente, el dueño real del Pokémon
+// afectado y si revertir este registro APLICA el efecto en vez de
+// quitarlo).
 async function insertAllAtaques(client, partId, attacksReceived) {
   for (const a of (attacksReceived || [])) {
     if (!a) continue;
     await client.query(
       `INSERT INTO ataques_recibidos (
          client_id, participante_id, carta, atacante, pokemon_nombre,
-         efecto, ubicacion, pc_box_index, pokemon_index, revertido, creado_en
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+         efecto, apply_efecto, owner_nombre, ubicacion, pc_box_index,
+         pokemon_index, revertido, creado_en
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
       [
         a.id || null, partId, a.card || null, a.attacker || null, a.pokemonName || null,
-        a.effect || null, a.location || null, a.boxIndex ?? null, a.pokemonIndex ?? null,
-        !!a.reverted, a.timestamp || new Date().toISOString(),
+        a.effect || null, !!a.applyEffect, a.ownerName || null, a.location || null,
+        a.boxIndex ?? null, a.pokemonIndex ?? null, !!a.reverted, a.timestamp || new Date().toISOString(),
       ]
     );
   }
