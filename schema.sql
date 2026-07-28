@@ -1,10 +1,11 @@
 -- ═══════════════════════════════════════════════════════════
 -- DEADSAFIO 3 — Esquema Postgres (Neon)
--- Ejecuta este archivo una vez en tu base de datos de Neon
--- (SQL Editor del dashboard, o con: psql "$DATABASE_URL" -f schema.sql)
+-- Ejecuta este archivo en tu base de datos de Neon (SQL Editor
+-- del dashboard, o con: psql "$DATABASE_URL" -f schema.sql)
 --
--- v2: añade persistencia de PC, caja, medallas, muerte/robo/blindaje
--- por pokémon, contador de muertes y Escudo real por participante.
+-- Usa siempre CREATE TABLE IF NOT EXISTS / ADD COLUMN IF NOT
+-- EXISTS, así que puedes volver a ejecutarlo entero sin miedo a
+-- perder nada de lo que ya tuvieras.
 -- ═══════════════════════════════════════════════════════════
 
 CREATE TABLE IF NOT EXISTS participantes (
@@ -15,11 +16,9 @@ CREATE TABLE IF NOT EXISTS participantes (
   num           INTEGER,
   badges        INTEGER DEFAULT 0,      -- medallas
   death_count   INTEGER DEFAULT 0,      -- contador persistente de muertes (revivir NO lo resta)
-  royal_shield  BOOLEAN DEFAULT FALSE,  -- Escudo real activo
+  royal_shield  BOOLEAN DEFAULT FALSE,  -- (histórico, ya no se usa activamente)
   creado_en     TIMESTAMP DEFAULT NOW()
 );
-
--- Si ya tenías la tabla creada de antes (v1), esto añade las columnas nuevas sin borrar nada:
 ALTER TABLE participantes ADD COLUMN IF NOT EXISTS badges       INTEGER DEFAULT 0;
 ALTER TABLE participantes ADD COLUMN IF NOT EXISTS death_count  INTEGER DEFAULT 0;
 ALTER TABLE participantes ADD COLUMN IF NOT EXISTS royal_shield BOOLEAN DEFAULT FALSE;
@@ -76,7 +75,6 @@ CREATE TABLE IF NOT EXISTS pokemon (
 );
 CREATE INDEX IF NOT EXISTS idx_pokemon_participante ON pokemon(participante_id);
 
--- Si ya tenías la tabla creada de antes (v1), esto añade las columnas nuevas sin borrar nada:
 ALTER TABLE pokemon ADD COLUMN IF NOT EXISTS ubicacion     VARCHAR(10) DEFAULT 'team';
 ALTER TABLE pokemon ADD COLUMN IF NOT EXISTS pc_box_index  INTEGER;
 ALTER TABLE pokemon ADD COLUMN IF NOT EXISTS pc_box_nombre VARCHAR(64);
@@ -104,7 +102,6 @@ CREATE TABLE IF NOT EXISTS torneo (
   nota    TEXT,
   fase    VARCHAR(64)
 );
--- Fila única con id=1 (la app hace UPDATE ... WHERE id=1)
 INSERT INTO torneo (id, titulo, nota, fase)
 VALUES (1, 'Deadsafio 3', NULL, 'en_curso')
 ON CONFLICT (id) DO NOTHING;
@@ -116,17 +113,22 @@ CREATE TABLE IF NOT EXISTS anuncios (
   creado_en  TIMESTAMP DEFAULT NOW()
 );
 
--- v3: historial de ataques recibidos por participante (Robas un Pokémon,
--- Matas un Pokémon, Profanatumbas), para poder revertirlos con las cartas
--- Escudo real / Reviertefectos.
+-- Historial de ataques recibidos por participante (Robas un Pokémon,
+-- Matas un Pokémon, Profanatumbas, Combate Pokémon), para poder
+-- revertirlos con Escudo real / Reviertefectos. Incluye también los
+-- CONTRAATAQUES: cuando alguien te revierte un ataque, se registra un
+-- nuevo ataque contra quien te lo hizo originalmente, para que pueda
+-- revertirlo de vuelta.
 CREATE TABLE IF NOT EXISTS ataques_recibidos (
   id               SERIAL PRIMARY KEY,
   client_id        VARCHAR(64),            -- id generado en el navegador (para que el frontend lo referencie)
   participante_id  INTEGER NOT NULL REFERENCES participantes(id) ON DELETE CASCADE,
-  carta            VARCHAR(64),            -- 'Robas un Pokémon' | 'Matas un Pokémon' | 'Profanatumbas'
-  atacante         VARCHAR(255),           -- usuario que la usó
+  carta            VARCHAR(64),            -- 'Robas un Pokémon' | 'Matas un Pokémon' | 'Profanatumbas' | 'Combate Pokémon' | 'Escudo real' | 'Reviertefectos'
+  atacante         VARCHAR(255),           -- usuario que causó este registro
   pokemon_nombre   VARCHAR(64),
-  efecto           VARCHAR(16),            -- 'stolen' | 'dead'
+  efecto           VARCHAR(16),            -- 'stolen' | 'dead' | NULL
+  apply_efecto     BOOLEAN DEFAULT FALSE,  -- true = revertir esto APLICA el efecto (contraataque); false = lo QUITA (ataque normal)
+  owner_nombre     VARCHAR(255),           -- dueño real del Pokémon afectado (puede diferir del participante que recibe este registro, en los contraataques)
   ubicacion        VARCHAR(10),            -- 'team' | 'pc' | 'box'
   pc_box_index     INTEGER,
   pokemon_index    INTEGER,
@@ -134,3 +136,6 @@ CREATE TABLE IF NOT EXISTS ataques_recibidos (
   creado_en        TIMESTAMP DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_ataques_participante ON ataques_recibidos(participante_id);
+
+ALTER TABLE ataques_recibidos ADD COLUMN IF NOT EXISTS apply_efecto BOOLEAN DEFAULT FALSE;
+ALTER TABLE ataques_recibidos ADD COLUMN IF NOT EXISTS owner_nombre VARCHAR(255);
