@@ -6089,13 +6089,21 @@ mpHighlight(0);
     ? 'http://localhost:3001/api'
     : window.location.origin + '/api';
   let _apiOnline = null; // null=no comprobado, true=online, false=offline
+  let _apiLastFailAt = 0;
 
   async function apiCheck() {
-    if (_apiOnline !== null) return _apiOnline;
+    // Si ya sabemos que está online, no hace falta volver a comprobarlo.
+    if (_apiOnline === true) return true;
+    // Si falló hace poco, no reintentamos en bucle en cada llamada, pero sí
+    // permitimos reintentar pasados unos segundos (arranque en frío de
+    // Railway, red móvil lenta, etc. — antes un solo fallo se quedaba
+    // "offline" para siempre durante toda la sesión).
+    if (_apiOnline === false && (Date.now() - _apiLastFailAt) < 6000) return false;
     try {
-      const r = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(2000) });
+      const r = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(8000) });
       _apiOnline = r.ok;
     } catch { _apiOnline = false; }
+    if (!_apiOnline) _apiLastFailAt = Date.now();
     return _apiOnline;
   }
 
@@ -6291,9 +6299,9 @@ mpHighlight(0);
         // Guardar en localStorage como caché también
         localStorage.setItem('ds3-admin-participants', JSON.stringify(parts));
         participants = parts;
-        renderParticipants();
+        if (typeof renderParticipantsList === 'function') renderParticipantsList();
       }
-    });
+    }).catch(e => console.warn('No se pudieron cargar los participantes al iniciar:', e));
   });
 
 
