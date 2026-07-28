@@ -365,10 +365,31 @@
     color: var(--cream);
     transition: color 0.2s;
     flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .participant-badges {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 3px 7px;
+    border-radius: 10px;
+    border: 0.5px solid rgba(212,175,55,0.4);
+    background: rgba(212,175,55,0.08);
+    color: var(--gold-light);
+    white-space: nowrap;
   }
 
   .participant-tag {
-    margin-left: auto;
+    margin-left: 0;
+    flex-shrink: 0;
     font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.12em;
@@ -379,6 +400,7 @@
   }
 
   .participant-arrow {
+    flex-shrink: 0;
     font-size: 0.75rem;
     color: rgba(90,90,220,0.5);
     margin-left: 4px;
@@ -2530,6 +2552,23 @@
     display: none !important;
   }
 
+  /* Fila de participante más compacta, para que quepan nombre + medallas +
+     estado sin desbordar en pantallas estrechas. */
+  .participant {
+    gap: 0.5rem;
+    padding: 0.65rem 0.7rem;
+  }
+  .participant-name { font-size: 0.88rem; }
+  .participant-badges {
+    font-size: 0.66rem;
+    padding: 2px 5px;
+  }
+  .participant-tag {
+    font-size: 0.62rem;
+    padding: 2px 5px;
+    letter-spacing: 0.06em;
+  }
+
   /* Hero */
   .main {
     padding: 5.5rem 1.1rem 1.5rem;
@@ -3734,10 +3773,13 @@
       const num    = p.num    || (displayI + 1);
       const status = p.status || 'activo';
       const lead   = p.team && p.team[0];
+      const badgesHtml = p.badges > 0
+        ? `<span class="participant-badges">🏅 ${p.badges}</span>` : '';
       div.innerHTML = `
         <span class="participant-num">${num}</span>
         ${lead ? `<img src="${pokemonSprite(lead, lead.shiny)}" style="width:28px;height:28px;image-rendering:pixelated;flex-shrink:0;" alt="">` : `<span class="participant-name">${emoji}</span>`}
         <span class="participant-name">${p.name}</span>
+        ${badgesHtml}
         <span class="participant-tag ${status==='eliminado'?'eliminated':''}">${status==='eliminado'?'Eliminado':'Activo'}</span>
         <span class="participant-arrow">▶</span>
       `;
