@@ -1750,6 +1750,19 @@
     transition: background 0.15s, transform 0.15s;
   }
   .admin-reset-data-btn:hover { background: rgba(90,180,255,0.25); transform: scale(1.08); }
+  .admin-badges-btn {
+    flex-shrink: 0;
+    border: 1px solid rgba(240,208,96,0.4);
+    border-radius: 5px;
+    background: rgba(240,208,96,0.08);
+    color: var(--gold-light);
+    padding: 0.25rem 0.4rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .admin-badges-btn:hover { background: rgba(240,208,96,0.25); transform: scale(1.08); }
 
   /* Añadir participante */
   .admin-add-row {
@@ -4630,9 +4643,10 @@
       return `<div>
         <div class="admin-part-row">
           <img src="${pokemonSprite((p.team && p.team[0]) || {id:p.pokemon || 1}, !!p.team?.[0]?.shiny)}" alt="">
-          <span class="admin-part-name">${p.name} <span style="font-size:0.6rem;opacity:0.5;">⚔️${teamCount} 📦${pcCount}${deadCount?' ☠'+deadCount:''}</span></span>
+          <span class="admin-part-name">${p.name} <span style="font-size:0.6rem;opacity:0.5;">⚔️${teamCount} 📦${pcCount}${deadCount?' ☠'+deadCount:''} 🏅${p.badges || 0}</span></span>
           <button class="admin-manage-pokemon-btn" onclick="toggleAdminPokemonManager(${i})">Pokémon</button>
           <button class="admin-insert-save-btn" onclick="adminTriggerInsertSave(${i})" title="Insertar partida (.rxdata) en ${p.name}" aria-label="Insertar partida en ${p.name}">📥</button>
+          <button class="admin-badges-btn" onclick="adminEditBadges(${i})" title="Editar medallas de ${p.name}" aria-label="Editar medallas de ${p.name}">🏅</button>
           <button class="admin-reset-data-btn" onclick="adminResetParticipantData(${i})" title="Borrar datos de ${p.name} (muertes, save, equipo, PC…) sin borrar la cuenta" aria-label="Borrar datos de ${p.name}">🔄</button>
           <span class="admin-part-status ${p.status === 'eliminado' ? 'eliminado' : ''}"
             onclick="adminToggleStatus(${i})">${p.status === 'eliminado' ? 'Eliminado' : 'Activo'}</span>
@@ -5518,12 +5532,25 @@
       }
     }
 
+    // Medallas: en Essentials @badges suele ser un array de 8 booleanos
+    // (uno por medalla) o, en algunas versiones, un número usado como
+    // máscara de bits. Si no se reconoce el formato, se deja en 0 en vez
+    // de romper el resto del parseo.
+    let badgeCount = 0;
+    const badgesIvar = rubyIvar(player, '@badges');
+    if (Array.isArray(badgesIvar)) {
+      badgeCount = badgesIvar.filter(b => b === true).length;
+    } else if (typeof badgesIvar === 'number' && Number.isFinite(badgesIvar)) {
+      let n = badgesIvar;
+      while (n > 0) { badgeCount += n & 1; n >>= 1; }
+    }
+
     return {
       name: trainerName,
       team,
       box: pcBoxes.flatMap(b => b.pokemon),
       pcBoxes,
-      badges: 0,
+      badges: badgeCount,
       parser: 'Pokémon Essentials v21.1 (Ruby Marshal estructural)'
     };
   }
@@ -5806,6 +5833,40 @@
       showAdminMsg('admin-part-msg', `✅ Datos de ${part.name} borrados. La cuenta sigue existiendo.`, 'ok');
     } else {
       showAdminMsg('admin-part-msg', `⚠️ Datos de ${part.name} borrados solo en este navegador — no se pudo guardar en la base de datos. En otro dispositivo seguirán apareciendo los datos antiguos.`, 'err');
+    }
+  }
+
+  // Edita el número de medallas a mano. Útil como respaldo si el parseo
+  // automático del save (@badges) no coincide con la versión del juego.
+  async function adminEditBadges(i) {
+    const parts = getAdminParticipants() || [];
+    const part = parts[i];
+    if (!part) return;
+
+    const raw = prompt(`Número de medallas de ${part.name}:`, String(part.badges || 0));
+    if (raw === null) return;
+    const num = parseInt(raw, 10);
+    if (isNaN(num) || num < 0) {
+      alert('Introduce un número válido (0 o más).');
+      return;
+    }
+
+    part.badges = num;
+    saveAdminParticipants(parts);
+    let dbOk = true;
+    if (typeof saveParticipantToDB === 'function') {
+      try {
+        const r = await saveParticipantToDB(part);
+        dbOk = r !== null;
+      } catch (error) {
+        dbOk = false;
+        console.warn(error);
+      }
+    }
+    renderAdminParticipants();
+    renderParticipantsList();
+    if (!dbOk) {
+      showAdminMsg('admin-part-msg', `⚠️ Medallas de ${part.name} guardadas solo en este navegador — no se pudo sincronizar con la base de datos.`, 'err');
     }
   }
 
