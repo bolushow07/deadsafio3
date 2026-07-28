@@ -3382,17 +3382,39 @@
   let envelopeCardCount = 3;
   let envelopeForceRarity = null;
 
-  function getUsedEnvelopeCodes() {
+  // Las contraseñas de sobre ya usadas se comprueban contra la BD (para que
+  // sean de un solo uso de verdad, no por navegador). Si la API no está
+  // disponible, cae a localStorage como respaldo.
+  async function getUsedEnvelopeCodes() {
+    if (await apiCheck()) {
+      try {
+        const rows = await apiGet('/sobres-usados');
+        return rows.map(r => r.codigo);
+      } catch (e) {
+        console.warn('No se pudo comprobar los sobres usados en la BD:', e.message);
+      }
+    }
     try { return JSON.parse(localStorage.getItem('ds3-used-envelope-codes') || '[]'); }
     catch { return []; }
   }
-  function markEnvelopeCodeUsed(code) {
-    const used = getUsedEnvelopeCodes();
-    used.push(code.toUpperCase());
-    localStorage.setItem('ds3-used-envelope-codes', JSON.stringify(used));
+  async function markEnvelopeCodeUsed(code) {
+    // Guardar siempre también en local, como caché/respaldo offline.
+    try {
+      const used = JSON.parse(localStorage.getItem('ds3-used-envelope-codes') || '[]');
+      used.push(code.toUpperCase());
+      localStorage.setItem('ds3-used-envelope-codes', JSON.stringify(used));
+    } catch {}
+
+    if (await apiCheck()) {
+      try {
+        await apiPost('/sobres-usados', { codigo: code.toUpperCase(), usadoPor: currentSessionUser() || null });
+      } catch (e) {
+        console.warn('No se pudo registrar el sobre usado en la BD:', e.message);
+      }
+    }
   }
 
-  function submitEnvelopeCode() {
+  async function submitEnvelopeCode() {
     if (!sessionStorage.getItem('ds3-session')) {
       openModal('modal-auth');
       return;
@@ -3415,14 +3437,16 @@
       return;
     }
 
-    const used = getUsedEnvelopeCodes();
+    msg.textContent = 'Comprobando contraseña…';
+    msg.className = 'envelope-code-msg';
+    const used = await getUsedEnvelopeCodes();
     if (used.includes(match.code)) {
       msg.textContent = '❌ Esa contraseña ya ha sido usada.';
       msg.className = 'envelope-code-msg err';
       return;
     }
 
-    markEnvelopeCodeUsed(match.code);
+    await markEnvelopeCodeUsed(match.code);
 
     // Contraseña especial de pruebas: da 5 copias de cada carta directamente,
     // sin pasar por la animación del sobre.
@@ -3507,15 +3531,63 @@
     container.appendChild(btn);
   }
 
-  // ── Colección de cartas ─────────────────────────────────────────────────────
+  // ── Colección de cartas (por CUENTA, sincronizada con Neon) ─────────────────
+  // Antes vivía en una única clave de localStorage compartida por todo el
+  // navegador. Ahora cada cuenta tiene su propia clave local (caché
+  // inmediata) Y se sincroniza con la base de datos en segundo plano.
+  function collectionKey() {
+    const user = currentSessionUser();
+    return user ? `ds3-collection-${user}` : 'ds3-collection';
+  }
   function loadCollection() {
-    try { return JSON.parse(localStorage.getItem('ds3-collection') || '{}'); }
+    try { return JSON.parse(localStorage.getItem(collectionKey()) || '{}'); }
     catch { return {}; }
   }
   function saveCollection(col) {
-    localStorage.setItem('ds3-collection', JSON.stringify(col));
+    localStorage.setItem(collectionKey(), JSON.stringify(col));
     updateCardBadge(col);
+    pushCollectionToDB(col);
   }
+
+  // Envía la colección completa (reemplazo total) a la BD, ligada a la
+  // cuenta con sesión iniciada. No bloquea la UI: se dispara en segundo
+  // plano y si falla (sin conexión, etc.) el localStorage sigue siendo
+  // la fuente de verdad local hasta que vuelva a haber conexión.
+  async function pushCollectionToDB(col) {
+    const user = currentSessionUser();
+    if (!user) return;
+    if (!(await apiCheck())) return;
+    const cards = Object.entries(col)
+      .filter(([, c]) => c && c.count > 0)
+      .map(([carta, c]) => ({ carta, cantidad: c.count }));
+    try {
+      await apiPut(`/coleccion/${encodeURIComponent(user)}`, { cards });
+    } catch (e) {
+      console.warn('No se pudo sincronizar la colección con la BD:', e.message);
+    }
+  }
+
+  // Trae la colección de la cuenta desde la BD y la deja como caché local.
+  // Se llama al iniciar sesión, para que las cartas "viajen" contigo.
+  async function pullCollectionFromDB() {
+    const user = currentSessionUser();
+    if (!user) return;
+    if (!(await apiCheck())) return;
+    try {
+      const rows = await apiGet(`/coleccion/${encodeURIComponent(user)}`);
+      const col = {};
+      rows.forEach(r => {
+        const meta = recompensas.find(rc => rc.value === r.carta);
+        col[r.carta] = { ...(meta || { value: r.carta, emoji: '🎴', rarity: 'common', label: '' }), count: r.cantidad };
+      });
+      localStorage.setItem(collectionKey(), JSON.stringify(col));
+      updateCardBadge(col);
+      if (typeof renderCollection === 'function') renderCollection();
+    } catch (e) {
+      console.warn('No se pudo cargar la colección de la BD:', e.message);
+    }
+  }
+
   function addCardsToCollection(cards) {
     const col = loadCollection();
     cards.forEach(c => {
@@ -3531,9 +3603,10 @@
       alert('Solo la cuenta de administrador puede borrar cartas.');
       return;
     }
-    if (!confirm('¿Borrar todas las cartas almacenadas?')) return;
-    localStorage.removeItem('ds3-collection');
+    if (!confirm('¿Borrar todas las cartas almacenadas de tu cuenta?')) return;
+    localStorage.removeItem(collectionKey());
     updateCardBadge({});
+    pushCollectionToDB({});
     renderCollection();
   }
   function updateCardBadge(col) {
@@ -4058,10 +4131,10 @@
   }
 
   function handleLogout() {
+    // La colección ya se sincroniza con la BD en cada cambio (pushCollectionToDB),
+    // así que aquí solo limpiamos la caché local de ESTA cuenta en este navegador.
+    localStorage.removeItem(collectionKey());
     sessionStorage.removeItem('ds3-session');
-    // TODO (BD): guardar colección del usuario antes de limpiar
-    // await fetch('/api/collection/save', { method: 'POST', body: JSON.stringify(loadCollection()) })
-    localStorage.removeItem('ds3-collection');
     updateCardBadge({});
     document.getElementById('collection-btn').classList.remove('cards-visible');
     resetEnvelope();
@@ -4280,6 +4353,7 @@
       // Usuarios normales cargan las notificaciones guardadas por admin
       loadAdminNotifs();
     }
+    if (user) pullCollectionFromDB();
   };
 
   // Restaurar de nuevo la sesión después de instalar la lógica de administrador.
