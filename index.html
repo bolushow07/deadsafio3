@@ -3103,6 +3103,8 @@
     { emoji: '🃏',  label: 'Épica',      value: '+2 cartas',                     rarity: 'epic'      },
     { emoji: '😶',  label: 'Común',      value: 'Nada',                          rarity: 'common'    },
     { emoji: '⚔️',  label: 'Rara',       value: 'Combate Pokémon',               rarity: 'rare'      },
+    { emoji: '🥚',  label: 'Rara',       value: 'Huevo random',                  rarity: 'rare'      },
+    { emoji: '🎁',  label: 'Épica',      value: 'Objeto nuevo',                  rarity: 'epic'      },
     { emoji: '💞',  label: 'Común',      value: 'Escama Corazón',                rarity: 'common'    },
     { emoji: '⭐',  label: 'Rara',       value: 'Shiny forzado',                 rarity: 'rare'      },
     { emoji: '😇',  label: 'Legendaria', value: 'Revivir un Pokémon',            rarity: 'legendary' },
@@ -7527,6 +7529,8 @@ mpHighlight(0);
   function useEscamaCorazonCard()  { useConfirmOnlyCard('Escama Corazón'); }
   function useShinyForzadoCard()   { useConfirmOnlyCard('Shiny forzado'); }
   function useSkipeoCard()         { useConfirmOnlyCard('Skipeo'); }
+  function useHuevoRandomCard()    { useConfirmOnlyCard('Huevo random'); }
+  function useObjetoNuevoCard()    { useConfirmOnlyCard('Objeto nuevo'); }
 
   // Sustituir el render de la colección para hacer utilizable la carta de robo.
   const _baseRenderCollection = renderCollection;
@@ -7678,6 +7682,30 @@ mpHighlight(0);
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
             useRevierteEfectosCard();
+          }
+        });
+      } else if (name === 'Huevo random') {
+        card.classList.add('usable-card');
+        card.title = 'Pulsa para usar esta carta';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.addEventListener('click', useHuevoRandomCard);
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            useHuevoRandomCard();
+          }
+        });
+      } else if (name === 'Objeto nuevo') {
+        card.classList.add('usable-card');
+        card.title = 'Pulsa para usar esta carta';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.addEventListener('click', useObjetoNuevoCard);
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            useObjetoNuevoCard();
           }
         });
       }
