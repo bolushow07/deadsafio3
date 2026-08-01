@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS pokemon (
   ev_velocidad     INTEGER DEFAULT 0,
   naturaleza       VARCHAR(32),
   felicidad        INTEGER DEFAULT 255,
+  forma            INTEGER DEFAULT 0,      -- forma regional (Alola/Galar/Paldea/Hisui): @form del save
   movimiento_1     VARCHAR(64),
   movimiento_2     VARCHAR(64),
   movimiento_3     VARCHAR(64),
@@ -83,6 +84,7 @@ ALTER TABLE pokemon ADD COLUMN IF NOT EXISTS stolen        BOOLEAN DEFAULT FALSE
 ALTER TABLE pokemon ADD COLUMN IF NOT EXISTS stolen_by     VARCHAR(255);
 ALTER TABLE pokemon ADD COLUMN IF NOT EXISTS stolen_at     TIMESTAMP;
 ALTER TABLE pokemon ADD COLUMN IF NOT EXISTS blindado      BOOLEAN DEFAULT FALSE;
+ALTER TABLE pokemon ADD COLUMN IF NOT EXISTS forma         INTEGER DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS cartas (
   id               SERIAL PRIMARY KEY,
@@ -154,9 +156,31 @@ CREATE INDEX IF NOT EXISTS idx_colecciones_usuario ON colecciones(usuario);
 -- Contraseñas de sobre ya canjeadas, para que sean de un solo uso de
 -- verdad (antes cada navegador llevaba su propia lista local, así que
 -- una misma contraseña se podía reutilizar desde otro dispositivo).
+-- Contraseñas de sobre canjeadas POR CUENTA: cada cuenta puede usar cada
+-- contraseña una vez, aunque otra cuenta ya la haya usado (antes era de
+-- un solo uso GLOBAL entre todas las cuentas, lo cual generaba el falso
+-- positivo de "esa contraseña ya ha sido usada" para cuentas que nunca
+-- la habían probado).
 CREATE TABLE IF NOT EXISTS sobres_usados (
   id         SERIAL PRIMARY KEY,
-  codigo     VARCHAR(64) UNIQUE NOT NULL,
-  usado_por  VARCHAR(255),
-  usado_en   TIMESTAMP DEFAULT NOW()
+  codigo     VARCHAR(64) NOT NULL,
+  usado_por  VARCHAR(255) NOT NULL,
+  usado_en   TIMESTAMP DEFAULT NOW(),
+  UNIQUE (codigo, usado_por)
 );
+
+-- Si la tabla ya existía con la restricción antigua (codigo UNIQUE a
+-- secas), la sustituimos por la nueva (codigo, usado_por).
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'sobres_usados_codigo_key'
+  ) THEN
+    ALTER TABLE sobres_usados DROP CONSTRAINT sobres_usados_codigo_key;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'sobres_usados_codigo_usado_por_key'
+  ) THEN
+    ALTER TABLE sobres_usados ADD CONSTRAINT sobres_usados_codigo_usado_por_key UNIQUE (codigo, usado_por);
+  END IF;
+END $$;
