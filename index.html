@@ -1763,6 +1763,19 @@
     transition: background 0.15s, transform 0.15s;
   }
   .admin-badges-btn:hover { background: rgba(240,208,96,0.25); transform: scale(1.08); }
+  .admin-deaths-btn {
+    flex-shrink: 0;
+    border: 1px solid rgba(231,76,60,0.4);
+    border-radius: 5px;
+    background: rgba(231,76,60,0.08);
+    color: var(--blood-bright);
+    padding: 0.25rem 0.4rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .admin-deaths-btn:hover { background: rgba(231,76,60,0.25); transform: scale(1.08); }
 
   /* Añadir participante */
   .admin-add-row {
@@ -3447,32 +3460,39 @@
   let envelopeCardCount = 3;
   let envelopeForceRarity = null;
 
-  // Las contraseñas de sobre ya usadas se comprueban contra la BD (para que
-  // sean de un solo uso de verdad, no por navegador). Si la API no está
-  // disponible, cae a localStorage como respaldo.
+  // Las contraseñas de sobre son de un solo uso POR CUENTA: cada cuenta
+  // puede usar cada contraseña una vez, aunque otra cuenta ya la haya
+  // usado. Se comprueban contra la BD (no por navegador); si la API no
+  // está disponible, cae a localStorage (también por cuenta) como respaldo.
+  function usedEnvelopeCodesKey() {
+    const user = currentSessionUser();
+    return user ? `ds3-used-envelope-codes-${user}` : 'ds3-used-envelope-codes';
+  }
   async function getUsedEnvelopeCodes() {
-    if (await apiCheck()) {
+    const user = currentSessionUser();
+    if (user && await apiCheck()) {
       try {
-        const rows = await apiGet('/sobres-usados');
+        const rows = await apiGet(`/sobres-usados/${encodeURIComponent(user)}`);
         return rows.map(r => r.codigo);
       } catch (e) {
         console.warn('No se pudo comprobar los sobres usados en la BD:', e.message);
       }
     }
-    try { return JSON.parse(localStorage.getItem('ds3-used-envelope-codes') || '[]'); }
+    try { return JSON.parse(localStorage.getItem(usedEnvelopeCodesKey()) || '[]'); }
     catch { return []; }
   }
   async function markEnvelopeCodeUsed(code) {
-    // Guardar siempre también en local, como caché/respaldo offline.
+    const user = currentSessionUser();
+    // Guardar siempre también en local (por cuenta), como caché/respaldo offline.
     try {
-      const used = JSON.parse(localStorage.getItem('ds3-used-envelope-codes') || '[]');
+      const used = JSON.parse(localStorage.getItem(usedEnvelopeCodesKey()) || '[]');
       used.push(code.toUpperCase());
-      localStorage.setItem('ds3-used-envelope-codes', JSON.stringify(used));
+      localStorage.setItem(usedEnvelopeCodesKey(), JSON.stringify(used));
     } catch {}
 
-    if (await apiCheck()) {
+    if (user && await apiCheck()) {
       try {
-        await apiPost('/sobres-usados', { codigo: code.toUpperCase(), usadoPor: currentSessionUser() || null });
+        await apiPost('/sobres-usados', { codigo: code.toUpperCase(), usadoPor: user });
       } catch (e) {
         console.warn('No se pudo registrar el sobre usado en la BD:', e.message);
       }
@@ -4645,10 +4665,11 @@
       return `<div>
         <div class="admin-part-row">
           <img src="${pokemonSprite((p.team && p.team[0]) || {id:p.pokemon || 1}, !!p.team?.[0]?.shiny)}" alt="">
-          <span class="admin-part-name">${p.name} <span style="font-size:0.6rem;opacity:0.5;">⚔️${teamCount} 📦${pcCount}${deadCount?' ☠'+deadCount:''} 🏅${p.badges || 0}</span></span>
+          <span class="admin-part-name">${p.name} <span style="font-size:0.6rem;opacity:0.5;">⚔️${teamCount} 📦${pcCount}${deadCount?' ☠'+deadCount:''} 🏅${p.badges || 0} 💀${p.deathCount || 0}</span></span>
           <button class="admin-manage-pokemon-btn" onclick="toggleAdminPokemonManager(${i})">Pokémon</button>
           <button class="admin-insert-save-btn" onclick="adminTriggerInsertSave(${i})" title="Insertar partida (.rxdata) en ${p.name}" aria-label="Insertar partida en ${p.name}">📥</button>
           <button class="admin-badges-btn" onclick="adminEditBadges(${i})" title="Editar medallas de ${p.name}" aria-label="Editar medallas de ${p.name}">🏅</button>
+          <button class="admin-deaths-btn" onclick="adminEditDeathCount(${i})" title="Editar contador de muertes de ${p.name}" aria-label="Editar muertes de ${p.name}">💀</button>
           <button class="admin-reset-data-btn" onclick="adminResetParticipantData(${i})" title="Borrar datos de ${p.name} (muertes, save, equipo, PC…) sin borrar la cuenta" aria-label="Borrar datos de ${p.name}">🔄</button>
           <span class="admin-part-status ${p.status === 'eliminado' ? 'eliminado' : ''}"
             onclick="adminToggleStatus(${i})">${p.status === 'eliminado' ? 'Eliminado' : 'Activo'}</span>
@@ -5869,6 +5890,41 @@
     renderParticipantsList();
     if (!dbOk) {
       showAdminMsg('admin-part-msg', `⚠️ Medallas de ${part.name} guardadas solo en este navegador — no se pudo sincronizar con la base de datos.`, 'err');
+    }
+  }
+
+  // Edita a mano el contador persistente de muertes (el que usa el
+  // ranking). A diferencia de marcar/revivir un Pokémon, esto no toca
+  // ningún Pokémon en concreto, solo el número total.
+  async function adminEditDeathCount(i) {
+    const parts = getAdminParticipants() || [];
+    const part = parts[i];
+    if (!part) return;
+
+    const raw = prompt(`Número de muertes de ${part.name}:`, String(part.deathCount || 0));
+    if (raw === null) return;
+    const num = parseInt(raw, 10);
+    if (isNaN(num) || num < 0) {
+      alert('Introduce un número válido (0 o más).');
+      return;
+    }
+
+    part.deathCount = num;
+    saveAdminParticipants(parts);
+    let dbOk = true;
+    if (typeof saveParticipantToDB === 'function') {
+      try {
+        const r = await saveParticipantToDB(part);
+        dbOk = r !== null;
+      } catch (error) {
+        dbOk = false;
+        console.warn(error);
+      }
+    }
+    renderAdminParticipants();
+    renderParticipantsList();
+    if (!dbOk) {
+      showAdminMsg('admin-part-msg', `⚠️ Muertes de ${part.name} guardadas solo en este navegador — no se pudo sincronizar con la base de datos.`, 'err');
     }
   }
 
