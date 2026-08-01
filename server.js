@@ -270,11 +270,11 @@ async function insertPokemon(client, partId, slot, pk, ubicacion, pcBoxIndex, pc
       ps, ps_max, ataque, defensa, sp_ataque, sp_defensa, velocidad,
       iv_hp, iv_ataque, iv_defensa, iv_sp_ataque, iv_sp_defensa, iv_velocidad,
       ev_hp, ev_ataque, ev_defensa, ev_sp_ataque, ev_sp_defensa, ev_velocidad,
-      naturaleza, felicidad, movimiento_1, movimiento_2, movimiento_3, movimiento_4,
+      naturaleza, felicidad, forma, movimiento_1, movimiento_2, movimiento_3, movimiento_4,
       dead, stolen, stolen_by, stolen_at, blindado
     ) VALUES (
       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,
-      $23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40,$41,$42
+      $23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40,$41,$42,$43
     )`,
     [
       partId, ubicacion, slot, pcBoxIndex, pcBoxNombre,
@@ -305,6 +305,7 @@ async function insertPokemon(client, partId, slot, pk, ubicacion, pcBoxIndex, pc
       (pk.evs && pk.evs.Speed)     || pk.ev_velocidad   || 0,
       pk.nature || pk.naturaleza || null,
       pk.happiness != null ? pk.happiness : (pk.felicidad != null ? pk.felicidad : 255),
+      Number.isInteger(pk.form) ? pk.form : (Number.isInteger(pk.forma) ? pk.forma : 0),
       (pk.moves && pk.moves[0] && pk.moves[0].name) || pk.movimiento_1 || null,
       (pk.moves && pk.moves[1] && pk.moves[1].name) || pk.movimiento_2 || null,
       (pk.moves && pk.moves[2] && pk.moves[2].name) || pk.movimiento_3 || null,
@@ -419,27 +420,34 @@ app.put('/api/coleccion/:usuario', async (req, res) => {
 });
 
 // ════════════════════════════════════════════════════════════
-// CONTRASEÑAS DE SOBRE YA USADAS (de un solo uso de verdad)
+// CONTRASEÑAS DE SOBRE YA USADAS (de un solo uso POR CUENTA)
 // ════════════════════════════════════════════════════════════
 
-app.get('/api/sobres-usados', async (req, res) => {
+// GET /api/sobres-usados/:usuario — códigos que ESA cuenta ya ha usado
+// (otras cuentas pueden seguir usando la misma contraseña).
+app.get('/api/sobres-usados/:usuario', async (req, res) => {
   try {
-    const rows = await query('SELECT codigo, usado_por, usado_en FROM sobres_usados');
+    const rows = await query(
+      'SELECT codigo, usado_en FROM sobres_usados WHERE usado_por = ?',
+      [req.params.usuario]
+    );
     res.json(rows);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// POST /api/sobres-usados — marca un código como usado (idempotente:
-// si ya estaba usado, no falla ni lo duplica).
+// POST /api/sobres-usados — marca un código como usado por una cuenta
+// concreta (idempotente: si esa misma cuenta ya lo había usado, no falla
+// ni lo duplica; otras cuentas pueden seguir usándolo con normalidad).
 app.post('/api/sobres-usados', async (req, res) => {
   const { codigo, usadoPor } = req.body;
   if (!codigo) return res.status(400).json({ error: 'codigo requerido' });
+  if (!usadoPor) return res.status(400).json({ error: 'usadoPor requerido' });
   try {
     await query(
-      'INSERT INTO sobres_usados (codigo, usado_por) VALUES (?,?) ON CONFLICT (codigo) DO NOTHING',
-      [codigo, usadoPor || null]
+      'INSERT INTO sobres_usados (codigo, usado_por) VALUES (?,?) ON CONFLICT (codigo, usado_por) DO NOTHING',
+      [codigo, usadoPor]
     );
     res.json({ ok: true });
   } catch (e) {
