@@ -1737,6 +1737,37 @@
     transition: background 0.15s, transform 0.15s;
   }
   .admin-insert-save-btn:hover { background: rgba(212,175,55,0.25); transform: scale(1.08); }
+  .admin-download-btn {
+    flex-shrink: 0;
+    border: 1px solid rgba(74,222,128,0.4);
+    border-radius: 5px;
+    background: rgba(74,222,128,0.08);
+    color: #4ade80;
+    padding: 0.25rem 0.4rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .admin-download-btn:hover { background: rgba(74,222,128,0.25); transform: scale(1.08); }
+  .admin-export-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.6rem;
+  }
+  .admin-export-btn {
+    border: 1px solid rgba(74,222,128,0.4);
+    border-radius: 6px;
+    background: rgba(74,222,128,0.08);
+    color: #4ade80;
+    padding: 0.45rem 0.8rem;
+    cursor: pointer;
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .admin-export-btn:hover { background: rgba(74,222,128,0.22); transform: translateY(-1px); }
   .admin-reset-data-btn {
     flex-shrink: 0;
     border: 1px solid rgba(90,180,255,0.35);
@@ -2843,6 +2874,9 @@
 
     <!-- Panel participantes -->
     <div class="admin-panel active" id="apanel-participants">
+      <div class="admin-export-row">
+        <button class="admin-export-btn" onclick="adminDownloadAllParticipants()" title="Descargar los datos de todas las partidas en un archivo JSON">⬇️ Descargar todas las partidas</button>
+      </div>
       <div class="admin-participant-list" id="admin-part-list"></div>
       <input type="file" id="admin-insert-save-file" accept=".rxdata,.dat,.bin" style="display:none;" onchange="adminHandleInsertSaveFile(this.files[0])">
 
@@ -4668,6 +4702,7 @@
           <span class="admin-part-name">${p.name} <span style="font-size:0.6rem;opacity:0.5;">⚔️${teamCount} 📦${pcCount}${deadCount?' ☠'+deadCount:''} 🏅${p.badges || 0} 💀${p.deathCount || 0}</span></span>
           <button class="admin-manage-pokemon-btn" onclick="toggleAdminPokemonManager(${i})">Pokémon</button>
           <button class="admin-insert-save-btn" onclick="adminTriggerInsertSave(${i})" title="Insertar partida (.rxdata) en ${p.name}" aria-label="Insertar partida en ${p.name}">📥</button>
+          <button class="admin-download-btn" onclick="adminDownloadParticipant(${i})" title="Descargar los datos de ${p.name}" aria-label="Descargar los datos de ${p.name}">⬇️</button>
           <button class="admin-badges-btn" onclick="adminEditBadges(${i})" title="Editar medallas de ${p.name}" aria-label="Editar medallas de ${p.name}">🏅</button>
           <button class="admin-deaths-btn" onclick="adminEditDeathCount(${i})" title="Editar contador de muertes de ${p.name}" aria-label="Editar muertes de ${p.name}">💀</button>
           <button class="admin-reset-data-btn" onclick="adminResetParticipantData(${i})" title="Borrar datos de ${p.name} (muertes, save, equipo, PC…) sin borrar la cuenta" aria-label="Borrar datos de ${p.name}">🔄</button>
@@ -5611,6 +5646,48 @@
       if (dz2) dz2.style.display = 'flex';
     };
     reader.readAsArrayBuffer(file);
+  }
+
+  // ── Descargar los datos de las partidas subidas (copia de seguridad) ────────
+  // No se genera un .rxdata real (formato binario propio de RPG Maker/Ruby,
+  // inviable de reconstruir fielmente aquí) — se descarga un .json con todos
+  // los datos que la app conoce de cada partida: equipo, PC, medallas,
+  // muertes, marcas de robado/blindado, ataques recibidos, etc.
+  function downloadJson(filename, data) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function slugifyFilename(name) {
+    return (name || 'partida')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quitar acentos
+      .replace(/[^a-zA-Z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'partida';
+  }
+
+  function adminDownloadParticipant(i) {
+    const parts = getAdminParticipants() || [];
+    const part = parts[i];
+    if (!part) return;
+    const fecha = new Date().toISOString().slice(0, 10);
+    downloadJson(`deadsafio3-${slugifyFilename(part.name)}-${fecha}.json`, part);
+  }
+
+  function adminDownloadAllParticipants() {
+    const parts = getAdminParticipants() || [];
+    if (!parts.length) {
+      alert('No hay partidas para descargar.');
+      return;
+    }
+    const fecha = new Date().toISOString().slice(0, 10);
+    downloadJson(`deadsafio3-todas-las-partidas-${fecha}.json`, parts);
   }
 
   // ── Insertar partida directamente en un participante concreto ───────────────
