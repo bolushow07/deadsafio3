@@ -1794,6 +1794,24 @@
     transition: background 0.15s, transform 0.15s;
   }
   .admin-badges-btn:hover { background: rgba(240,208,96,0.25); transform: scale(1.08); }
+  .admin-hof-btn {
+    flex-shrink: 0;
+    border: 1px solid rgba(148,163,184,0.4);
+    border-radius: 5px;
+    background: rgba(148,163,184,0.08);
+    color: #94a3b8;
+    padding: 0.25rem 0.4rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1;
+    transition: background 0.15s, transform 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .admin-hof-btn:hover { background: rgba(148,163,184,0.25); transform: scale(1.08); }
+  .admin-hof-btn.active {
+    border-color: rgba(240,208,96,0.6);
+    background: rgba(240,208,96,0.18);
+    color: var(--gold-light);
+  }
   .admin-deaths-btn {
     flex-shrink: 0;
     border: 1px solid rgba(231,76,60,0.4);
@@ -3853,7 +3871,7 @@
       const status = p.status || 'activo';
       const lead   = p.team && p.team[0];
       const badgesHtml = p.badges > 0
-        ? `<span class="participant-badges">${badgeIcon(p.badges)} ${p.badges}</span>` : '';
+        ? `<span class="participant-badges">${badgeDisplay(p.badges, p.hallOfFame)}</span>` : '';
       div.innerHTML = `
         <span class="participant-num">${num}</span>
         ${lead ? `<img src="${pokemonSprite(lead, lead.shiny)}" style="width:28px;height:28px;image-rendering:pixelated;flex-shrink:0;" alt="">` : `<span class="participant-name">${emoji}</span>`}
@@ -3955,7 +3973,7 @@
     }
 
     const badgesHtml = p.badges > 0
-      ? `<span style="font-size:0.72rem;opacity:0.6;">${badgeIcon(p.badges)} ${p.badges} medalla${p.badges===1?'':'s'}</span>` : '';
+      ? `<span style="font-size:0.72rem;opacity:0.6;">${(p.badges >= 8 && p.hallOfFame) ? '👑 Hall de la Fama' : `🏅 ${p.badges} medalla${p.badges===1?'':'s'}`}</span>` : '';
 
     profileView.innerHTML = `
       <button class="profile-back" onclick="backToList()">◀ Volver</button>
@@ -4435,10 +4453,20 @@
     return count;
   }
 
-  // Con las 8 medallas de gimnasio ya se ha completado la Liga Pokémon:
-  // a partir de ahí, en vez del icono de medallas se muestra una corona.
-  function badgeIcon(badges) {
-    return (badges || 0) >= 8 ? '👑' : '🏅';
+  function getHallOfFameForUser(username) {
+    const parts = (typeof getAdminParticipants === 'function' ? getAdminParticipants() : null) || [];
+    const uname = (username || '').trim().toLowerCase();
+    return parts.some(p => p && (p.name || '').trim().toLowerCase() === uname && p.hallOfFame);
+  }
+
+  // Con 8 medallas se han ganado todos los gimnasios, pero solo se muestra
+  // la corona cuando además se ha marcado que hay datos en el Hall de la
+  // Fama (el admin lo marca a mano, ver adminEditHallOfFame). Con 8
+  // medallas pero sin Hall de la Fama, se sigue mostrando "🏅 8".
+  function badgeDisplay(badges, hallOfFame) {
+    const n = badges || 0;
+    if (n >= 8 && hallOfFame) return '👑';
+    return `🏅 ${n}`;
   }
 
   let currentRankingFilter = 'all';
@@ -4461,8 +4489,13 @@
     else if (filter === 'normal') accounts = accounts.filter(acc => getUserMode(acc.user) === 'normal');
 
     const ranked = accounts
-      .map(acc => ({ ...acc, deaths: getDeathCountForUser(acc.user), badges: getBadgesCountForUser(acc.user), mode: getUserMode(acc.user) }))
-      .sort((a, b) => (b.badges - a.badges) || (a.deaths - b.deaths));
+      .map(acc => ({ ...acc, deaths: getDeathCountForUser(acc.user), badges: getBadgesCountForUser(acc.user), hallOfFame: getHallOfFameForUser(acc.user), mode: getUserMode(acc.user) }))
+      .sort((a, b) => {
+        const aCrown = a.badges >= 8 && a.hallOfFame;
+        const bCrown = b.badges >= 8 && b.hallOfFame;
+        if (aCrown !== bCrown) return aCrown ? -1 : 1; // la corona manda por delante de las medallas
+        return (b.badges - a.badges) || (a.deaths - b.deaths);
+      });
 
     if (!ranked.length) {
       list.innerHTML = '<div class="ranking-empty">📭 No hay jugadores en este filtro.</div>';
@@ -4480,7 +4513,7 @@
           <span class="ranking-name">${acc.user}</span>
           <span class="ranking-mode-badge ${acc.mode}">${acc.mode === 'radical' ? '☠️ Radical' : '🎮 Normal'}</span>
         </div>
-        <span class="ranking-badges-count">${badgeIcon(acc.badges)} ${acc.badges}</span>
+        <span class="ranking-badges-count">${badgeDisplay(acc.badges, acc.hallOfFame)}</span>
         <span class="ranking-deaths">💀 ${acc.deaths}</span>
       </div>`;
     }).join('');
@@ -4727,11 +4760,12 @@
       return `<div>
         <div class="admin-part-row">
           <img src="${pokemonSprite((p.team && p.team[0]) || {id:p.pokemon || 1}, !!p.team?.[0]?.shiny)}" alt="">
-          <span class="admin-part-name">${p.name} <span style="font-size:0.6rem;opacity:0.5;">⚔️${teamCount} 📦${pcCount}${deadCount?' ☠'+deadCount:''} ${badgeIcon(p.badges)}${p.badges || 0} 💀${p.deathCount || 0}</span></span>
+          <span class="admin-part-name">${p.name} <span style="font-size:0.6rem;opacity:0.5;">⚔️${teamCount} 📦${pcCount}${deadCount?' ☠'+deadCount:''} ${badgeDisplay(p.badges, p.hallOfFame)} 💀${p.deathCount || 0}</span></span>
           <button class="admin-manage-pokemon-btn" onclick="toggleAdminPokemonManager(${i})">Pokémon</button>
           <button class="admin-insert-save-btn" onclick="adminTriggerInsertSave(${i})" title="Insertar partida (.rxdata) en ${p.name}" aria-label="Insertar partida en ${p.name}">📥</button>
           <button class="admin-download-btn" onclick="adminDownloadParticipant(${i})" title="Descargar los datos de ${p.name}" aria-label="Descargar los datos de ${p.name}">⬇️</button>
           <button class="admin-badges-btn" onclick="adminEditBadges(${i})" title="Editar medallas de ${p.name}" aria-label="Editar medallas de ${p.name}">🏅</button>
+          <button class="admin-hof-btn ${p.hallOfFame ? 'active' : ''}" onclick="adminToggleHallOfFame(${i})" title="${p.hallOfFame ? 'Quitar' : 'Marcar'} Hall de la Fama de ${p.name} (con 8 medallas muestra la corona)" aria-label="Hall de la Fama de ${p.name}">👑</button>
           <button class="admin-deaths-btn" onclick="adminEditDeathCount(${i})" title="Editar contador de muertes de ${p.name}" aria-label="Editar muertes de ${p.name}">💀</button>
           <button class="admin-reset-data-btn" onclick="adminResetParticipantData(${i})" title="Borrar datos de ${p.name} (muertes, save, equipo, PC…) sin borrar la cuenta" aria-label="Borrar datos de ${p.name}">🔄</button>
           <span class="admin-part-status ${p.status === 'eliminado' ? 'eliminado' : ''}"
@@ -5998,6 +6032,33 @@
     }
   }
 
+  // Marca/desmarca si esa partida tiene datos en el Hall de la Fama.
+  // Con 8 medallas + Hall de la Fama marcado, se muestra la corona 👑
+  // en vez del número de medallas.
+  async function adminToggleHallOfFame(i) {
+    const parts = getAdminParticipants() || [];
+    const part = parts[i];
+    if (!part) return;
+
+    part.hallOfFame = !part.hallOfFame;
+    saveAdminParticipants(parts);
+    let dbOk = true;
+    if (typeof saveParticipantToDB === 'function') {
+      try {
+        const r = await saveParticipantToDB(part);
+        dbOk = r !== null;
+      } catch (error) {
+        dbOk = false;
+        console.warn(error);
+      }
+    }
+    renderAdminParticipants();
+    renderParticipantsList();
+    if (!dbOk) {
+      showAdminMsg('admin-part-msg', `⚠️ Hall de la Fama de ${part.name} guardado solo en este navegador — no se pudo sincronizar con la base de datos.`, 'err');
+    }
+  }
+
   // Edita a mano el contador persistente de muertes (el que usa el
   // ranking). A diferencia de marcar/revivir un Pokémon, esto no toca
   // ningún Pokémon en concreto, solo el número total.
@@ -6516,6 +6577,7 @@ mpHighlight(0);
       badges:      p.badges || 0,
       deathCount:  p.death_count || 0,
       royalShield: !!p.royal_shield,
+      hallOfFame:  !!p.hall_of_fame,
       team,
       box,
       pcBoxes,
@@ -6562,6 +6624,7 @@ mpHighlight(0);
       badges:      uiParticipant.badges || 0,
       deathCount:  uiParticipant.deathCount || 0,
       royalShield: !!uiParticipant.royalShield,
+      hallOfFame:  !!uiParticipant.hallOfFame,
       team:    uiParticipant.team || [],
       box:     uiParticipant.box || [],
       pcBoxes: uiParticipant.pcBoxes || [],
