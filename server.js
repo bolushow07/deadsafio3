@@ -85,7 +85,7 @@ app.get('/api/health', async (req, res) => {
 app.get('/api/participantes', async (req, res) => {
   try {
     const parts = await query(`
-      SELECT id, nombre, emoji, estado, num, badges, death_count, royal_shield, creado_en
+      SELECT id, nombre, emoji, estado, num, badges, death_count, royal_shield, hall_of_fame, creado_en
       FROM participantes ORDER BY COALESCE(num, id)
     `);
 
@@ -129,7 +129,7 @@ app.get('/api/participantes/:id', async (req, res) => {
 app.post('/api/participantes', async (req, res) => {
   const {
     nombre, emoji = '💀', estado = 'activo', num,
-    badges = 0, deathCount = 0, royalShield = false,
+    badges = 0, deathCount = 0, royalShield = false, hallOfFame = false,
     team = [], pcBoxes = [], cartas = [], attacksReceived = [],
   } = req.body;
   if (!nombre) return res.status(400).json({ error: 'nombre requerido' });
@@ -139,9 +139,9 @@ app.post('/api/participantes', async (req, res) => {
     await client.query('BEGIN');
 
     const insertPart = await client.query(
-      `INSERT INTO participantes (nombre, emoji, estado, num, badges, death_count, royal_shield)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-      [nombre, emoji, estado, num || null, badges || 0, deathCount || 0, !!royalShield]
+      `INSERT INTO participantes (nombre, emoji, estado, num, badges, death_count, royal_shield, hall_of_fame)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+      [nombre, emoji, estado, num || null, badges || 0, deathCount || 0, !!royalShield, !!hallOfFame]
     );
     const partId = insertPart.rows[0].id;
 
@@ -167,7 +167,7 @@ app.post('/api/participantes', async (req, res) => {
 
 // PUT /api/participantes/:id — actualizar datos + equipo + PC + ataques completos
 app.put('/api/participantes/:id', async (req, res) => {
-  const { nombre, emoji, estado, num, badges, deathCount, royalShield, team, pcBoxes, attacksReceived } = req.body;
+  const { nombre, emoji, estado, num, badges, deathCount, royalShield, hallOfFame, team, pcBoxes, attacksReceived } = req.body;
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -182,6 +182,7 @@ app.put('/api/participantes/:id', async (req, res) => {
     if (badges !== undefined)    { sets.push(`badges=$${++i}`);       vals.push(badges); }
     if (deathCount !== undefined){ sets.push(`death_count=$${++i}`);  vals.push(deathCount); }
     if (royalShield !== undefined){ sets.push(`royal_shield=$${++i}`); vals.push(!!royalShield); }
+    if (hallOfFame !== undefined) { sets.push(`hall_of_fame=$${++i}`); vals.push(!!hallOfFame); }
     if (sets.length) {
       vals.push(req.params.id);
       await client.query(`UPDATE participantes SET ${sets.join(',')} WHERE id=$${++i}`, vals);
