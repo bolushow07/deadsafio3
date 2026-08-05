@@ -17,11 +17,13 @@ CREATE TABLE IF NOT EXISTS participantes (
   badges        INTEGER DEFAULT 0,      -- medallas
   death_count   INTEGER DEFAULT 0,      -- contador persistente de muertes (revivir NO lo resta)
   royal_shield  BOOLEAN DEFAULT FALSE,  -- (histórico, ya no se usa activamente)
+  hall_of_fame  BOOLEAN DEFAULT FALSE,  -- ha entrado al Hall de la Fama (con las 8 medallas = corona)
   creado_en     TIMESTAMP DEFAULT NOW()
 );
 ALTER TABLE participantes ADD COLUMN IF NOT EXISTS badges       INTEGER DEFAULT 0;
 ALTER TABLE participantes ADD COLUMN IF NOT EXISTS death_count  INTEGER DEFAULT 0;
 ALTER TABLE participantes ADD COLUMN IF NOT EXISTS royal_shield BOOLEAN DEFAULT FALSE;
+ALTER TABLE participantes ADD COLUMN IF NOT EXISTS hall_of_fame BOOLEAN DEFAULT FALSE;
 
 CREATE TABLE IF NOT EXISTS pokemon (
   id               SERIAL PRIMARY KEY,
