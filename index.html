@@ -3853,7 +3853,7 @@
       const status = p.status || 'activo';
       const lead   = p.team && p.team[0];
       const badgesHtml = p.badges > 0
-        ? `<span class="participant-badges">🏅 ${p.badges}</span>` : '';
+        ? `<span class="participant-badges">${badgeIcon(p.badges)} ${p.badges}</span>` : '';
       div.innerHTML = `
         <span class="participant-num">${num}</span>
         ${lead ? `<img src="${pokemonSprite(lead, lead.shiny)}" style="width:28px;height:28px;image-rendering:pixelated;flex-shrink:0;" alt="">` : `<span class="participant-name">${emoji}</span>`}
@@ -3955,7 +3955,7 @@
     }
 
     const badgesHtml = p.badges > 0
-      ? `<span style="font-size:0.72rem;opacity:0.6;">🏅 ${p.badges} medalla${p.badges===1?'':'s'}</span>` : '';
+      ? `<span style="font-size:0.72rem;opacity:0.6;">${badgeIcon(p.badges)} ${p.badges} medalla${p.badges===1?'':'s'}</span>` : '';
 
     profileView.innerHTML = `
       <button class="profile-back" onclick="backToList()">◀ Volver</button>
@@ -4435,6 +4435,12 @@
     return count;
   }
 
+  // Con las 8 medallas de gimnasio ya se ha completado la Liga Pokémon:
+  // a partir de ahí, en vez del icono de medallas se muestra una corona.
+  function badgeIcon(badges) {
+    return (badges || 0) >= 8 ? '👑' : '🏅';
+  }
+
   let currentRankingFilter = 'all';
 
   function setRankingFilter(filter) {
@@ -4474,7 +4480,7 @@
           <span class="ranking-name">${acc.user}</span>
           <span class="ranking-mode-badge ${acc.mode}">${acc.mode === 'radical' ? '☠️ Radical' : '🎮 Normal'}</span>
         </div>
-        <span class="ranking-badges-count">🏅 ${acc.badges}</span>
+        <span class="ranking-badges-count">${badgeIcon(acc.badges)} ${acc.badges}</span>
         <span class="ranking-deaths">💀 ${acc.deaths}</span>
       </div>`;
     }).join('');
@@ -4721,7 +4727,7 @@
       return `<div>
         <div class="admin-part-row">
           <img src="${pokemonSprite((p.team && p.team[0]) || {id:p.pokemon || 1}, !!p.team?.[0]?.shiny)}" alt="">
-          <span class="admin-part-name">${p.name} <span style="font-size:0.6rem;opacity:0.5;">⚔️${teamCount} 📦${pcCount}${deadCount?' ☠'+deadCount:''} 🏅${p.badges || 0} 💀${p.deathCount || 0}</span></span>
+          <span class="admin-part-name">${p.name} <span style="font-size:0.6rem;opacity:0.5;">⚔️${teamCount} 📦${pcCount}${deadCount?' ☠'+deadCount:''} ${badgeIcon(p.badges)}${p.badges || 0} 💀${p.deathCount || 0}</span></span>
           <button class="admin-manage-pokemon-btn" onclick="toggleAdminPokemonManager(${i})">Pokémon</button>
           <button class="admin-insert-save-btn" onclick="adminTriggerInsertSave(${i})" title="Insertar partida (.rxdata) en ${p.name}" aria-label="Insertar partida en ${p.name}">📥</button>
           <button class="admin-download-btn" onclick="adminDownloadParticipant(${i})" title="Descargar los datos de ${p.name}" aria-label="Descargar los datos de ${p.name}">⬇️</button>
