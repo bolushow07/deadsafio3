@@ -7601,18 +7601,29 @@ mpHighlight(0);
       return;
     }
 
-    const attacks = (own.attacksReceived || [])
-      .filter(a => !a.reverted && allowedCards.includes(a.card))
-      .slice(-5)
-      .reverse();
+    const REVERT_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 horas
+    const now = Date.now();
+    const eligible = a => !a.reverted && allowedCards.includes(a.card);
+    const isReady = a => {
+      const t = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+      return (now - t) >= REVERT_COOLDOWN_MS;
+    };
+
+    const allEligible = (own.attacksReceived || []).filter(eligible);
+    const attacks = allEligible.filter(isReady).slice(-5).reverse();
+
     if (!attacks.length) {
-      alert(`No has recibido ningún ataque reciente que "${cardName}" pueda revertir.`);
+      if (allEligible.some(a => !isReady(a))) {
+        alert(`Tienes ataques recientes, pero hay que esperar 24 horas desde que te atacaron para poder proteger o revertir esa carta con "${cardName}".`);
+      } else {
+        alert(`No has recibido ningún ataque reciente que "${cardName}" pueda revertir.`);
+      }
       return;
     }
 
     closeModal('modal-collection');
     document.getElementById('steal-modal-title').textContent = `${emoji} ${cardName}`;
-    document.getElementById('steal-help').textContent = 'Elige uno de tus últimos ataques recibidos para revertirlo por completo. La carta se consumirá al confirmar.';
+    document.getElementById('steal-help').textContent = 'Elige uno de tus últimos ataques recibidos (con al menos 24h desde que ocurrieron) para revertirlo por completo. La carta se consumirá al confirmar.';
     const content = document.getElementById('steal-content');
     content.innerHTML = '<div class="steal-list"></div>';
     const list = content.firstElementChild;
@@ -7644,6 +7655,13 @@ mpHighlight(0);
       alert('Ese ataque ya no está disponible.');
       const allowedCards = cardName === 'Escudo real' ? SHIELDABLE_ATTACK_CARDS : REVERTIBLE_ATTACK_CARDS;
       useRevertAttackCard(cardName, emoji, allowedCards);
+      return;
+    }
+
+    const REVERT_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 horas
+    const attackTime = attack.timestamp ? new Date(attack.timestamp).getTime() : 0;
+    if ((Date.now() - attackTime) < REVERT_COOLDOWN_MS) {
+      alert('Todavía no han pasado 24 horas desde ese ataque. No puedes protegerlo ni revertirlo aún.');
       return;
     }
 
