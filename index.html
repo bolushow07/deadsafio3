@@ -3511,7 +3511,7 @@
     { code: 'DYPMEJORPOKEANI',   sobres: 1 },
     { code: 'DOSCIFRAS',         sobres: 1 },
     { code: 'DEADSAFIO3',        sobres: 3 },
-    { code: 'MITADDELD3',        sobres: 3 },
+    { code: 'MITADDELD3',        sobres: 3, blockedUsers: ['Jonny'] },
     { code: 'ULTIMOSSOBRES',     sobres: 3 },
     { code: 'FELIZCUMPLEAÑOS',   sobres: 1, cardCount: 1, forceRarity: 'legendary' },
     { code: 'PRUEBASADMIN',      sobres: 0, giveAllCards: 5 },
@@ -3580,6 +3580,12 @@
     const match = ENVELOPE_CODES.find(c => c.code === raw);
     if (!match) {
       msg.textContent = '❌ Contraseña incorrecta.';
+      msg.className = 'envelope-code-msg err';
+      return;
+    }
+
+    if (match.blockedUsers && match.blockedUsers.includes(currentSessionUser())) {
+      msg.textContent = '❌ No puedes usar esta contraseña.';
       msg.className = 'envelope-code-msg err';
       return;
     }
