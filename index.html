@@ -3217,6 +3217,21 @@
     return pool[Math.floor(Math.random() * pool.length)];
   }
 
+  // Fuerza una carta EXACTA por nombre (p.ej. contraseñas especiales que
+  // garantizan siempre la misma carta, como "Profanatumbas").
+  function drawSpecificCard(cardValue) {
+    return recompensas.find(r => r.value === cardValue) || drawCard();
+  }
+
+  // Sortea una carta al azar dentro de un conjunto restringido de nombres
+  // (p.ej. la contraseña MITADDELD3 para Jonny: solo Escama Corazón,
+  // Combate Pokémon y Nada).
+  function drawFromPool(poolValues) {
+    const pool = recompensas.filter(r => poolValues.includes(r.value));
+    if (!pool.length) return drawCard();
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
   // ── Sobre: abrir con 3 cartas ───────────────────────────────────────────────
   function buildCard(r, delay) {
     const card = document.createElement('div');
@@ -3280,8 +3295,20 @@
 
     if (!isRollback) envelopeSobresRemaining -= 1;
 
-    const draw = () => envelopeForceRarity ? drawCardForcedRarity(envelopeForceRarity) : drawCard();
+    const draw = () => envelopeRestrictedPool
+      ? drawFromPool(envelopeRestrictedPool)
+      : (envelopeForceCard ? drawSpecificCard(envelopeForceCard) : (envelopeForceRarity ? drawCardForcedRarity(envelopeForceRarity) : drawCard()));
     const chosen = Array.from({ length: envelopeCardCount }, draw);
+
+    // Si hay un pool restringido con una carta a evitar en su totalidad
+    // (p.ej. que no salgan las 3 "Nada" en el mismo sobre), forzar que al
+    // menos una sea distinta.
+    if (envelopeAvoidAllSame && chosen.length > 1 && chosen.every(c => c.value === envelopeAvoidAllSame)) {
+      const alternatives = (envelopeRestrictedPool || []).filter(v => v !== envelopeAvoidAllSame);
+      if (alternatives.length) {
+        chosen[Math.floor(Math.random() * chosen.length)] = drawFromPool(alternatives);
+      }
+    }
 
     const container = document.getElementById('rewards-container');
     container.innerHTML = '';
@@ -3498,6 +3525,13 @@
       if (codeInput) codeInput.value = '';
       const codeMsg = document.getElementById('envelope-code-msg');
       if (codeMsg) { codeMsg.textContent = ''; codeMsg.className = 'envelope-code-msg'; }
+      // Limpiar cualquier restricción de la contraseña anterior para que no
+      // se filtre a la siguiente que se introduzca.
+      envelopeCardCount = 3;
+      envelopeForceRarity = null;
+      envelopeForceCard = null;
+      envelopeRestrictedPool = null;
+      envelopeAvoidAllSame = null;
     }
   }
 
@@ -3511,16 +3545,20 @@
     { code: 'DYPMEJORPOKEANI',   sobres: 1 },
     { code: 'DOSCIFRAS',         sobres: 1 },
     { code: 'DEADSAFIO3',        sobres: 3 },
-    { code: 'MITADDELD3',        sobres: 3, blockedUsers: ['Jonny'] },
+    { code: 'MITADDELD3',        sobres: 3, restrictedFor: { users: ['Jonny'], cards: ['Escama Corazón', 'Combate Pokémon', 'Nada'], avoidAllSame: 'Nada' } },
     { code: 'ULTIMOSSOBRES',     sobres: 3 },
     { code: 'FELIZCUMPLEAÑOS',   sobres: 1, cardCount: 1, forceRarity: 'legendary' },
     { code: 'PRUEBASADMIN',      sobres: 0, giveAllCards: 5 },
+    { code: 'TUMBAABIERTA',      sobres: 1, cardCount: 1, forceCard: 'Profanatumbas' },
   ];
 
   let envelopeSobresTotal = 1;
   let envelopeSobresRemaining = 0;
   let envelopeCardCount = 3;
   let envelopeForceRarity = null;
+  let envelopeForceCard = null;
+  let envelopeRestrictedPool = null;
+  let envelopeAvoidAllSame = null;
 
   // Las contraseñas de sobre son de un solo uso POR CUENTA: cada cuenta
   // puede usar cada contraseña una vez, aunque otra cuenta ya la haya
@@ -3624,8 +3662,19 @@
     envelopeSobresRemaining = match.sobres;
     envelopeCardCount = match.cardCount || 3;
     envelopeForceRarity = match.forceRarity || null;
+    envelopeForceCard = match.forceCard || null;
+    envelopeRestrictedPool = null;
+    envelopeAvoidAllSame = null;
+    if (match.restrictedFor && match.restrictedFor.users.includes(currentSessionUser())) {
+      envelopeRestrictedPool = match.restrictedFor.cards;
+      envelopeAvoidAllSame = match.restrictedFor.avoidAllSame || null;
+    }
 
-    if (envelopeForceRarity) {
+    if (envelopeRestrictedPool) {
+      msg.textContent = '✅ Sobre desbloqueado.';
+    } else if (envelopeForceCard) {
+      msg.textContent = `🎗 ¡Contraseña especial! Sobre con la carta "${envelopeForceCard}" garantizada.`;
+    } else if (envelopeForceRarity) {
       msg.textContent = `🎉 ¡Contraseña de cumpleaños! Sobre con 1 carta ${envelopeForceRarity === 'legendary' ? 'legendaria' : envelopeForceRarity} garantizada.`;
     } else {
       msg.textContent = match.sobres > 1 ? `✨ ¡Contraseña especial! ${match.sobres} sobres desbloqueados.` : '✅ Sobre desbloqueado.';
@@ -7601,20 +7650,20 @@ mpHighlight(0);
       return;
     }
 
-    const REVERT_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 horas
+    const REVERT_DEADLINE_MS = 24 * 60 * 60 * 1000; // 24 horas
     const now = Date.now();
     const eligible = a => !a.reverted && allowedCards.includes(a.card);
-    const isReady = a => {
+    const isInTime = a => {
       const t = a.timestamp ? new Date(a.timestamp).getTime() : 0;
-      return (now - t) >= REVERT_COOLDOWN_MS;
+      return (now - t) < REVERT_DEADLINE_MS;
     };
 
     const allEligible = (own.attacksReceived || []).filter(eligible);
-    const attacks = allEligible.filter(isReady).slice(-5).reverse();
+    const attacks = allEligible.filter(isInTime).slice(-5).reverse();
 
     if (!attacks.length) {
-      if (allEligible.some(a => !isReady(a))) {
-        alert(`Tienes ataques recientes, pero hay que esperar 24 horas desde que te atacaron para poder proteger o revertir esa carta con "${cardName}".`);
+      if (allEligible.some(a => !isInTime(a))) {
+        alert(`Ya han pasado más de 24 horas desde ese ataque — se te acabó el plazo para proteger o revertir esa carta con "${cardName}".`);
       } else {
         alert(`No has recibido ningún ataque reciente que "${cardName}" pueda revertir.`);
       }
@@ -7623,7 +7672,7 @@ mpHighlight(0);
 
     closeModal('modal-collection');
     document.getElementById('steal-modal-title').textContent = `${emoji} ${cardName}`;
-    document.getElementById('steal-help').textContent = 'Elige uno de tus últimos ataques recibidos (con al menos 24h desde que ocurrieron) para revertirlo por completo. La carta se consumirá al confirmar.';
+    document.getElementById('steal-help').textContent = 'Elige uno de tus últimos ataques recibidos (tienes 24h desde que ocurrieron) para revertirlo por completo. La carta se consumirá al confirmar.';
     const content = document.getElementById('steal-content');
     content.innerHTML = '<div class="steal-list"></div>';
     const list = content.firstElementChild;
@@ -7658,10 +7707,10 @@ mpHighlight(0);
       return;
     }
 
-    const REVERT_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 horas
+    const REVERT_DEADLINE_MS = 24 * 60 * 60 * 1000; // 24 horas
     const attackTime = attack.timestamp ? new Date(attack.timestamp).getTime() : 0;
-    if ((Date.now() - attackTime) < REVERT_COOLDOWN_MS) {
-      alert('Todavía no han pasado 24 horas desde ese ataque. No puedes protegerlo ni revertirlo aún.');
+    if ((Date.now() - attackTime) >= REVERT_DEADLINE_MS) {
+      alert('Ya han pasado más de 24 horas desde ese ataque. Se te acabó el plazo para protegerlo o revertirlo.');
       return;
     }
 
