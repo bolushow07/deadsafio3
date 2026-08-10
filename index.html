@@ -3543,11 +3543,11 @@
     { code: 'DIA3ENDEADSAFIO3',  sobres: 1 },
     { code: 'RIMAMECINCO',       sobres: 1 },
     { code: 'POKEWINDWAVES',     sobres: 1, restrictedFor: { users: ['Jonny'], cards: ['Huevo random', 'Nada', 'Escama Corazón'] } },
-    { code: 'DOSCIFRAS',         sobres: 1 },
+    { code: 'DOSCIFRAS',         sobres: 1, allowedUsers: ['Bolushow'], allowedUsersMsg: '❌ Tienes que pasar el save para poder abrir los sobres.' },
     { code: 'DEADSAFIO3',        sobres: 3 },
     { code: 'MITADDELD3',        sobres: 3, restrictedFor: { users: ['Jonny'], cards: ['Escama Corazón', 'Combate Pokémon', 'Nada'], avoidAllSame: 'Nada' } },
     { code: 'ULTIMOSSOBRES',     sobres: 3 },
-    { code: 'FELIZCUMPLEAÑOS',   sobres: 1, cardCount: 1, forceRarity: 'legendary' },
+    { code: 'FELIZCUMPLEAÑOS',   sobres: 1, cardCount: 1, forceRarity: 'legendary', allowedUsers: ['Bolushow'], allowedUsersMsg: '❌ Tienes que pasar el save para poder abrir los sobres.' },
     { code: 'PRUEBASADMIN',      sobres: 0, giveAllCards: 5 },
     { code: 'TUMBAABIERTA',      sobres: 1, cardCount: 1, forceCard: 'Profanatumbas' },
   ];
@@ -3624,6 +3624,12 @@
 
     if (match.blockedUsers && match.blockedUsers.includes(currentSessionUser())) {
       msg.textContent = '❌ No puedes usar esta contraseña.';
+      msg.className = 'envelope-code-msg err';
+      return;
+    }
+
+    if (match.allowedUsers && !match.allowedUsers.includes(currentSessionUser())) {
+      msg.textContent = match.allowedUsersMsg || '❌ No puedes usar esta contraseña.';
       msg.className = 'envelope-code-msg err';
       return;
     }
