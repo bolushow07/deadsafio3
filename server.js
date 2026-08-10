@@ -22,6 +22,10 @@ app.use(express.json({ limit: '10mb' }));
 
 // Servir el index.html en la raíz
 app.get('/', (req, res) => {
+  // Sin esto, algunos navegadores se quedan con una copia en caché de
+  // index.html y no ven los cambios nuevos hasta que el usuario fuerza un
+  // refresco manual — esto obliga a que siempre pidan la versión actual.
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
