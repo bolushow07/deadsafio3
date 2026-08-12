@@ -3217,6 +3217,27 @@
     return pool[Math.floor(Math.random() * pool.length)];
   }
 
+  // Igual que drawCard() pero excluyendo del sorteo ciertas cartas por
+  // nombre (p.ej. la contraseña ULTIMOSSOBRES nunca da Escudo real ni
+  // Reviertefectos). Mantiene los mismos pesos por rareza; si la rareza
+  // sorteada se queda sin cartas por la exclusión, prueba otra vez con
+  // el resto de cartas disponibles.
+  function drawCardExcluding(excludedValues) {
+    const available = recompensas.filter(r => !excludedValues.includes(r.value));
+    if (!available.length) return drawCard();
+
+    const roll = Math.random() * 100;
+    let rarity;
+    if (roll < 50)       rarity = 'common';
+    else if (roll < 75)  rarity = 'rare';
+    else if (roll < 95)  rarity = 'epic';
+    else                 rarity = 'legendary';
+
+    let pool = available.filter(r => r.rarity === rarity);
+    if (!pool.length) pool = available; // esa rareza se quedó sin cartas: usar cualquiera disponible
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
   // Fuerza una carta EXACTA por nombre (p.ej. contraseñas especiales que
   // garantizan siempre la misma carta, como "Profanatumbas").
   function drawSpecificCard(cardValue) {
@@ -3297,7 +3318,7 @@
 
     const draw = () => envelopeRestrictedPool
       ? drawFromPool(envelopeRestrictedPool)
-      : (envelopeForceCard ? drawSpecificCard(envelopeForceCard) : (envelopeForceRarity ? drawCardForcedRarity(envelopeForceRarity) : drawCard()));
+      : (envelopeForceCard ? drawSpecificCard(envelopeForceCard) : (envelopeForceRarity ? drawCardForcedRarity(envelopeForceRarity) : (envelopeExcludedCards ? drawCardExcluding(envelopeExcludedCards) : drawCard())));
     const chosen = Array.from({ length: envelopeCardCount }, draw);
 
     // Si hay un pool restringido con una carta a evitar en su totalidad
@@ -3532,6 +3553,7 @@
       envelopeForceCard = null;
       envelopeRestrictedPool = null;
       envelopeAvoidAllSame = null;
+      envelopeExcludedCards = null;
     }
   }
 
@@ -3543,11 +3565,11 @@
     { code: 'DIA3ENDEADSAFIO3',  sobres: 1 },
     { code: 'RIMAMECINCO',       sobres: 1 },
     { code: 'POKEWINDWAVES',     sobres: 1, restrictedFor: { users: ['Jonny'], cards: ['Huevo random', 'Nada', 'Escama Corazón'] } },
-    { code: 'DOSCIFRAS',         sobres: 1, allowedUsers: ['Bolushow', "SamGi'S", 'Fire', 'Bobal', 'Vaynilo', 'Visturin', 'Khalghays', 'ElNestor'], allowedUsersMsg: '❌ Tienes que pasar el save para poder abrir los sobres.' },
+    { code: 'DOSCIFRAS',         sobres: 1, allowedUsers: ['Bolushow', "SamGi'S", 'Fire', 'Bobal', 'Vaynilo', 'Visturin', 'Khalghays', 'ElNestor', 'ElOtaku', 'Lordjire'], allowedUsersMsg: '❌ Tienes que pasar el save para poder abrir los sobres.' },
     { code: 'DEADSAFIO3',        sobres: 3 },
     { code: 'MITADDELD3',        sobres: 3, restrictedFor: { users: ['Jonny'], cards: ['Escama Corazón', 'Combate Pokémon', 'Nada'], avoidAllSame: 'Nada' } },
-    { code: 'ULTIMOSSOBRES',     sobres: 3 },
-    { code: 'FELIZCUMPLEAÑOS',   sobres: 1, cardCount: 1, forceRarity: 'legendary', allowedUsers: ['Bolushow', "SamGi'S", 'Fire', 'Bobal', 'Vaynilo', 'Visturin', 'Khalghays', 'ElNestor'], allowedUsersMsg: '❌ Tienes que pasar el save para poder abrir los sobres.' },
+    { code: 'ULTIMOSSOBRES',     sobres: 3, excludedCards: ['Escudo real', 'Reviertefectos'] },
+    { code: 'FELIZCUMPLEAÑOS',   sobres: 1, cardCount: 1, forceRarity: 'legendary', allowedUsers: ['Bolushow', "SamGi'S", 'Fire', 'Bobal', 'Vaynilo', 'Visturin', 'Khalghays', 'ElNestor', 'ElOtaku', 'Lordjire'], allowedUsersMsg: '❌ Tienes que pasar el save para poder abrir los sobres.' },
     { code: 'PRUEBASADMIN',      sobres: 0, giveAllCards: 5 },
     { code: 'TUMBAABIERTA',      sobres: 1, cardCount: 1, forceCard: 'Profanatumbas' },
   ];
@@ -3559,6 +3581,7 @@
   let envelopeForceCard = null;
   let envelopeRestrictedPool = null;
   let envelopeAvoidAllSame = null;
+  let envelopeExcludedCards = null;
 
   // Las contraseñas de sobre son de un solo uso POR CUENTA: cada cuenta
   // puede usar cada contraseña una vez, aunque otra cuenta ya la haya
@@ -3671,6 +3694,7 @@
     envelopeForceCard = match.forceCard || null;
     envelopeRestrictedPool = null;
     envelopeAvoidAllSame = null;
+    envelopeExcludedCards = match.excludedCards || null;
     if (match.restrictedFor && match.restrictedFor.users.includes(currentSessionUser())) {
       envelopeRestrictedPool = match.restrictedFor.cards;
       envelopeAvoidAllSame = match.restrictedFor.avoidAllSame || null;
@@ -6883,7 +6907,7 @@ mpHighlight(0);
       const name = pk.nickname || pokemonDisplaySpecies(pk) || pk.species || 'Pokémon';
       button.innerHTML = `
         <img src="${pokemonSprite(pk, !!pk.shiny)}" alt="${name}">
-        <span class="steal-choice-name">${name}</span>
+        <span class="steal-choice-name">${pk.dead ? '💀 ' : ''}${name}</span>
         <span class="steal-choice-sub">Nv. ${pk.level ?? '?'} · ${location === 'team' ? 'Equipo' : 'PC'}</span>
       `;
       button.addEventListener('click', () =>
