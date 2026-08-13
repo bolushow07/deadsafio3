@@ -6956,8 +6956,15 @@ mpHighlight(0);
     logAttackReceived(participant, 'Robas un Pokémon', name, 'stolen', location, boxIndex, pokemonIndex);
 
     saveAdminParticipants(parts);
+    let dbOk = true;
     if (typeof saveParticipantToDB === 'function') {
-      try { await saveParticipantToDB(participant); } catch (error) { console.warn(error); }
+      try {
+        const r = await saveParticipantToDB(participant);
+        dbOk = r !== null;
+      } catch (error) {
+        dbOk = false;
+        console.warn(error);
+      }
     }
 
     const stolenKey = `ds3-stolen-pokemon-${thief}`;
@@ -6974,7 +6981,11 @@ mpHighlight(0);
     renderParticipantsList();
     updateCardBadge(loadCollection());
     closeModal('modal-steal-pokemon');
-    alert(`${name} ha sido marcado como ROBADO en la partida de ${participant.name}.`);
+    if (dbOk) {
+      alert(`${name} ha sido marcado como ROBADO en la partida de ${participant.name}.`);
+    } else {
+      alert(`⚠️ ${name} se ha marcado como ROBADO solo en este navegador — no se pudo guardar en la base de datos. Puede que la marca no se vea desde otros dispositivos hasta que se sincronice.`);
+    }
   }
 
   // ── USO DE CARTA: PROFANATUMBAS (robar un Pokémon marcado como muerto) ──
@@ -7112,8 +7123,15 @@ mpHighlight(0);
     logAttackReceived(participant, 'Profanatumbas', name, 'stolen', location, boxIndex, pokemonIndex);
 
     saveAdminParticipants(parts);
+    let dbOk = true;
     if (typeof saveParticipantToDB === 'function') {
-      try { await saveParticipantToDB(participant); } catch (error) { console.warn(error); }
+      try {
+        const r = await saveParticipantToDB(participant);
+        dbOk = r !== null;
+      } catch (error) {
+        dbOk = false;
+        console.warn(error);
+      }
     }
 
     const stolenKey = `ds3-stolen-pokemon-${thief}`;
@@ -7130,7 +7148,11 @@ mpHighlight(0);
     renderParticipantsList();
     updateCardBadge(loadCollection());
     closeModal('modal-steal-pokemon');
-    alert(`${name} ha sido marcado como ROBADO (desde la tumba) en la partida de ${participant.name}.`);
+    if (dbOk) {
+      alert(`${name} ha sido marcado como ROBADO (desde la tumba) en la partida de ${participant.name}.`);
+    } else {
+      alert(`⚠️ ${name} se ha marcado como ROBADO solo en este navegador — no se pudo guardar en la base de datos. Puede que la marca no se vea desde otros dispositivos hasta que se sincronice.`);
+    }
   }
 
   // ── USO DE CARTA: REVIVIR UN POKÉMON (revivir un Pokémon marcado como muerto, si no está robado) ──
@@ -7557,15 +7579,26 @@ mpHighlight(0);
     logAttackReceived(participant, 'Matas un Pokémon', name, 'dead', location, boxIndex, pokemonIndex);
 
     saveAdminParticipants(parts);
+    let dbOk = true;
     if (typeof saveParticipantToDB === 'function') {
-      try { await saveParticipantToDB(participant); } catch (error) { console.warn(error); }
+      try {
+        const r = await saveParticipantToDB(participant);
+        dbOk = r !== null;
+      } catch (error) {
+        dbOk = false;
+        console.warn(error);
+      }
     }
 
     broadcastCardUseNotif('Matas un Pokémon', '💀', participant.name);
     renderParticipantsList();
     updateCardBadge(loadCollection());
     closeModal('modal-steal-pokemon');
-    alert(`${name} ha sido marcado como MUERTO en la partida de ${participant.name}.`);
+    if (dbOk) {
+      alert(`${name} ha sido marcado como MUERTO en la partida de ${participant.name}.`);
+    } else {
+      alert(`⚠️ ${name} se ha marcado como MUERTO solo en este navegador — no se pudo guardar en la base de datos. Puede que la marca no se vea desde otros dispositivos hasta que se sincronice.`);
+    }
   }
 
   // ── USO DE CARTA: INTERCAMBIO FORZADO / INTERCAMBIO PRODIGIOSO (solo eligen partida) ──
